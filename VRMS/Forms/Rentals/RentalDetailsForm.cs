@@ -1,20 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace VRMS.Forms.Rentals
+namespace Vehicle_Rental_Management_System.Forms
 {
     public partial class RentalDetailsForm : Form
     {
         public RentalDetailsForm()
         {
             InitializeComponent();
+
+            // Link the close button to the form close action
+            btnClose.Click += (s, e) => this.Close();
         }
     }
 }
