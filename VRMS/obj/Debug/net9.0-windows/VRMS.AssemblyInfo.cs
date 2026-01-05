@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VRMS")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7bfb55ecf55e5cf23476de7004fdd6dd5a0c4ac9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8ce00b1cf8c9c3162d3cb54334db8576c99c3f55")]
 [assembly: System.Reflection.AssemblyProductAttribute("VRMS")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VRMS")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

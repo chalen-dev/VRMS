@@ -23,10 +23,15 @@ static class Program
         // ======== Database Migrations ===================================== //
         /* UNCOMMENT EACH LINE IF USED */
         
-        //1. Create All Tables
+        //1. Drop All Tables (for migrating fresh)
+        DropTables.Run(DB.ExecuteNonQuery);
+        
+        //2. Create All Tables
         CreateTables.Run(DB.ExecuteScalar, DB.ExecuteNonQuery);
         
-        // Stop here. Do NOT start WinForms. (Uncomment for testing)
+        
+        // UNCOMMENT FOR TESTING
+        // Stop here. Do NOT start WinForms. 
         return;
         
         ApplicationConfiguration.Initialize();

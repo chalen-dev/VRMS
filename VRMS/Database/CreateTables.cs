@@ -1,4 +1,5 @@
 ﻿using VRMS.Database.DBHelpers;
+using VRMS.Database.DBHelpers.TableExecutors;
 using VRMS.Database.Tables;
 
 namespace VRMS.Database;
@@ -9,6 +10,8 @@ public static class CreateTables
         Func<string, object?> executeScalar,
         Action<string> executeNonQuery)
     {
+        Console.WriteLine("\n[INFO] Creating tables.\n");
+        
         // Ensure schema_info exists
         executeNonQuery(M_0001_CreateSchemaInfoTable.Create());
 
@@ -19,7 +22,7 @@ public static class CreateTables
             return;
 
         // Auto-execute all table creates in order
-        TableExecutor.ExecuteAllCreates(executeNonQuery);
+        CreateExecutor.Execute(executeNonQuery);
 
         // Mark schema as initialized
         executeNonQuery(M_0001_CreateSchemaInfoTable.InsertInitial());
