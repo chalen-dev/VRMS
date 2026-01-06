@@ -1,6 +1,6 @@
 ﻿using VRMS.Database.StoredProcedures.Customers.DriversLicense;
 
-namespace VRMS.Database.Migrations;
+namespace VRMS.Database.Migrations.StoredProcedures;
 
 public static class M_1006_CreateDriversLicenseProcedures
 {

@@ -1,7 +1,6 @@
-﻿using VRMS.Database.StoredProcedures.Fleet;
-using VRMS.Database.StoredProcedures.Fleet.VehicleCategories;
+﻿using VRMS.Database.StoredProcedures.Fleet.VehicleCategories;
 
-namespace VRMS.Database.Tables;
+namespace VRMS.Database.Migrations.StoredProcedures;
 
 public static class M_1002_CreateVehicleCategoryProcedures
 {

@@ -1,6 +1,6 @@
 ﻿using VRMS.Database.StoredProcedures.Fleet.VehicleImages;
 
-namespace VRMS.Database.Migrations;
+namespace VRMS.Database.Migrations.StoredProcedures;
 
 public static class M_1005_CreateVehicleImageProcedures
 {

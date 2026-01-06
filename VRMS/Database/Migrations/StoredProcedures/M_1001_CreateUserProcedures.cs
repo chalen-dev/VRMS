@@ -1,6 +1,6 @@
 ﻿using VRMS.Database.StoredProcedures.Accounts;
 
-namespace VRMS.Database.Tables;
+namespace VRMS.Database.Migrations.StoredProcedures;
 
 public static class M_1001_CreateUserProcedures
 {

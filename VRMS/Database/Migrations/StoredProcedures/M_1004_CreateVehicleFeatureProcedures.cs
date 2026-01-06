@@ -1,6 +1,6 @@
 ﻿using VRMS.Database.StoredProcedures.Fleet.VehicleFeature;
 
-namespace VRMS.Database.Migrations;
+namespace VRMS.Database.Migrations.StoredProcedures;
 
 public static class M_1004_CreateVehicleFeatureProcedures
 {

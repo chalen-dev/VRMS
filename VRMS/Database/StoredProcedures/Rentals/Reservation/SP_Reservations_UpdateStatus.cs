@@ -1,0 +1,16 @@
+﻿namespace VRMS.Database.StoredProcedures.Rentals.Reservation;
+
+public static class SP_Reservations_UpdateStatus
+{
+    public static string Sql() => """
+                                  CREATE PROCEDURE sp_reservations_update_status (
+                                      IN p_reservation_id INT,
+                                      IN p_status ENUM('Pending','Confirmed','Cancelled','Completed')
+                                  )
+                                  BEGIN
+                                      UPDATE reservations
+                                      SET status = p_status
+                                      WHERE id = p_reservation_id;
+                                  END;
+                                  """;
+}

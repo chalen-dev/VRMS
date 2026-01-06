@@ -1,4 +1,4 @@
-﻿namespace VRMS.Database.Migrations;
+﻿namespace VRMS.Database.Migrations.Tables;
 
 public static class M_0016_CreateRateConfigurationsTable
 {

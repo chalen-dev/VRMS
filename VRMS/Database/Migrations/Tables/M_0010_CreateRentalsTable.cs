@@ -1,7 +1,7 @@
 ﻿using VRMS.Database.DBHelpers.EnumHelper;
 using VRMS.Enums;
 
-namespace VRMS.Database.Migrations;
+namespace VRMS.Database.Migrations.Tables;
 public static class M_0010_CreateRentalsTable
 {
     public static string Create() => $"""
