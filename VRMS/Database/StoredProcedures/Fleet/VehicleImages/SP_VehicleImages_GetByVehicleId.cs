@@ -3,6 +3,8 @@
 public static class SP_VehicleImages_GetByVehicleId
 {
     public static string Sql() => """
+                                  DROP PROCEDURE IF EXISTS sp_vehicle_images_get_by_vehicle_id;
+
                                   CREATE PROCEDURE sp_vehicle_images_get_by_vehicle_id (
                                       IN p_vehicle_id INT
                                   )

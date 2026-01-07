@@ -5,13 +5,6 @@ namespace VRMS.Database.Migrations;
 public static class M_1009_CreateRentalProcedures
 {
     public static string Create() => $"""
-                                      DROP PROCEDURE IF EXISTS sp_rentals_create;
-                                      DROP PROCEDURE IF EXISTS sp_rentals_get_by_id;
-                                      DROP PROCEDURE IF EXISTS sp_rentals_get_by_reservation;
-                                      DROP PROCEDURE IF EXISTS sp_rentals_start;
-                                      DROP PROCEDURE IF EXISTS sp_rentals_complete;
-                                      DROP PROCEDURE IF EXISTS sp_rentals_update_status;
-
                                       {SP_Rentals_Create.Sql()}
                                       {SP_Rentals_GetById.Sql()}
                                       {SP_Rentals_GetByReservation.Sql()}

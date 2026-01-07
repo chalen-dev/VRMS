@@ -64,10 +64,9 @@ namespace VRMS
             }
             
             //Uncomment for testing (Migration testing)
-            //Drop.Run(DB.ExecuteNonQuery);
-            //Create.Run(DB.ExecuteScalar, DB.ExecuteNonQuery);
-
-            return;
+            //  Drop.Run(DB.ExecuteNonQuery);
+            //  Create.Run(DB.ExecuteScalar, DB.ExecuteNonQuery);
+            //  return;
 
             // ----------------------------
             // Start WinForms UI

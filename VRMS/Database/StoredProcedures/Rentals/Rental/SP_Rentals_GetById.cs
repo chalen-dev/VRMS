@@ -3,6 +3,8 @@
 public static class SP_Rentals_GetById
 {
     public static string Sql() => """
+                                  DROP PROCEDURE IF EXISTS sp_rentals_get_by_id;
+
                                   CREATE PROCEDURE sp_rentals_get_by_id (
                                       IN p_rental_id INT
                                   )

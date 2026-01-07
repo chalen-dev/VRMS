@@ -3,6 +3,8 @@
 public static class SP_Rentals_Create
 {
     public static string Sql() => """
+                                  DROP PROCEDURE IF EXISTS sp_rentals_create;
+
                                   CREATE PROCEDURE sp_rentals_create (
                                       IN p_reservation_id INT,
                                       IN p_pickup_date DATETIME,

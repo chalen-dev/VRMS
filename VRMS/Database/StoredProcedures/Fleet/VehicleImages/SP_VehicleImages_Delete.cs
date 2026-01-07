@@ -3,6 +3,8 @@
 public static class SP_VehicleImages_Delete
 {
     public static string Sql() => """
+                                  DROP PROCEDURE IF EXISTS sp_vehicle_images_delete;
+
                                   CREATE PROCEDURE sp_vehicle_images_delete (
                                       IN p_id INT
                                   )

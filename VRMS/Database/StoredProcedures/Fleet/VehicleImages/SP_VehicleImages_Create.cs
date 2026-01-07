@@ -3,6 +3,8 @@
 public static class SP_VehicleImages_Create
 {
     public static string Sql() => """
+                                  DROP PROCEDURE IF EXISTS sp_vehicle_images_create;
+
                                   CREATE PROCEDURE sp_vehicle_images_create (
                                       IN p_vehicle_id INT,
                                       IN p_image_path VARCHAR(255)
