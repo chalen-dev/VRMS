@@ -1,9 +1,6 @@
-﻿using VRMS.Database.DBHelpers;
-using VRMS.Database.DBHelpers.TableExecutors;
-using VRMS.Database.Migrations;
-using VRMS.Database.Migrations.Tables;
+﻿using VRMS.Database.Migrations.Tables;
 
-namespace VRMS.Database;
+namespace VRMS.Database.Executors;
 
 public static class Create
 {

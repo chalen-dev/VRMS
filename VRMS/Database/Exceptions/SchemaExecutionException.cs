@@ -1,4 +1,4 @@
-﻿namespace VRMS.Database;
+﻿namespace VRMS.Database.Exceptions;
 
 public sealed class SchemaExecutionException : Exception
 {
