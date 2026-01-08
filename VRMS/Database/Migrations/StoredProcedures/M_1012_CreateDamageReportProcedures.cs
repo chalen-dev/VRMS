@@ -1,0 +1,20 @@
+﻿using VRMS.Database.StoredProcedures.Damages.DamageReport;
+
+namespace VRMS.Database.Migrations;
+
+public static class M_1012_CreateDamageReportProcedures
+{
+    public static string Create() => $"""
+                                      {SP_DamageReports_Create.Sql()}
+                                      {SP_DamageReports_GetById.Sql()}
+                                      {SP_DamageReports_GetByInspection.Sql()}
+                                      {SP_DamageReports_Approve.Sql()}
+                                      """;
+
+    public static string Drop() => """
+                                   DROP PROCEDURE IF EXISTS sp_damage_reports_create;
+                                   DROP PROCEDURE IF EXISTS sp_damage_reports_get_by_id;
+                                   DROP PROCEDURE IF EXISTS sp_damage_reports_get_by_inspection;
+                                   DROP PROCEDURE IF EXISTS sp_damage_reports_approve;
+                                   """;
+}

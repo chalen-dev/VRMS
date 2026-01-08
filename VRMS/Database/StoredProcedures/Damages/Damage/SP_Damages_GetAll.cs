@@ -1,4 +1,4 @@
-﻿namespace VRMS.Database.StoredProcedures.Damages;
+﻿namespace VRMS.Database.StoredProcedures.Damages.Damage;
 
 public static class SP_Damages_GetAll
 {
