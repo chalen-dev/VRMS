@@ -2,18 +2,23 @@
 using System.Windows.Forms;
 using Microsoft.Extensions.Configuration;
 using VRMS.Database;
+using VRMS.Database.Executors;
 using VRMS.Terminal;
 
 namespace VRMS
 {
     internal static class Program
     {
+        // Global session info (used by MainForm)
         public static string CurrentUsername { get; set; } = "Guest";
         public static string CurrentUserRole { get; set; } = "User";
 
         [STAThread]
         static void Main(string[] args)
         {
+            // ----------------------------
+            // Load configuration
+            // ----------------------------
             var config = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: false)
@@ -27,6 +32,9 @@ namespace VRMS
                     "Connection string 'Default' is missing in appsettings.json");
             }
 
+            // ----------------------------
+            // Initialize database
+            // ----------------------------
             DB.Initialize(connectionString);
 
             // ----------------------------
@@ -34,8 +42,7 @@ namespace VRMS
             // ----------------------------
             if (CommandDispatcher.TryExecute(args, out var result))
             {
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
+                ApplicationConfiguration.Initialize();
 
                 using var context = new ApplicationContext();
 
@@ -57,8 +64,17 @@ namespace VRMS
                 return;
             }
 
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            //Uncomment for testing (Migration testing)
+            //Drop.Run(DB.ExecuteNonQuery);
+            //Create.Run(DB.ExecuteScalar, DB.ExecuteNonQuery);
+            //  return;
+
+            // ----------------------------
+            // Start WinForms UI
+            // ----------------------------
+            ApplicationConfiguration.Initialize();
+
+            // IMPORTANT: Welcome is in namespace VRMS
             Application.Run(new Welcome());
         }
     }
