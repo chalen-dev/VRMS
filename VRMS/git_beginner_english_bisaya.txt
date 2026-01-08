@@ -1,0 +1,102 @@
+GIT SITUATIONS GUIDE (English + Bisaya, Beginner Friendly)
+
+==============================
+SITUATION 1: Kuhaon RA ang changes gikan sa upstream (SAFE)
+==============================
+
+STEP-BY-STEP:
+git checkout master
+git fetch upstream
+git merge upstream/master
+git push origin master
+
+PINAKASAYON:
+git checkout master
+git fetch upstream
+git merge upstream/master
+git push origin master
+
+Meaning: Kuha lang ko sa ilang updates, ayaw hilabti akong work.
+
+==============================
+SITUATION 2: Kuhaon ang changes pero limpyo ang history (REBASE)
+==============================
+
+STEP-BY-STEP:
+git checkout master
+git fetch upstream
+git rebase upstream/master
+git push origin master
+
+Kung naay conflict:
+git rebase --continue
+
+PINAKASAYON:
+git checkout master
+git fetch upstream
+git rebase upstream/master
+git push origin master
+
+==============================
+SITUATION 3: Ipareha GYUD tanan (DESTRUCTIVE)
+==============================
+
+WARNING: Mabura imong local changes
+
+STEP-BY-STEP:
+git checkout master
+git fetch upstream
+git reset --hard upstream/master
+git push origin master --force
+
+PINAKASAYON:
+git checkout master
+git fetch upstream
+git reset --hard upstream/master
+git push origin master --force
+
+==============================
+SITUATION 4: Commit ug Push
+==============================
+
+STEP-BY-STEP:
+git status
+git add .
+git commit -m "Unsay imong gibuhat"
+git push origin master
+
+PINAKASAYON:
+git add .
+git commit -m "My changes"
+git push origin master
+
+==============================
+SITUATION 5: Start new work (SAFE WAY)
+==============================
+
+STEP-BY-STEP:
+git checkout master
+git fetch upstream
+git merge upstream/master
+git checkout -b feature/my-task
+
+PINAKASAYON:
+git checkout master
+git fetch upstream
+git merge upstream/master
+git checkout -b feature/my-task
+
+==============================
+IMPORTANT REMINDERS
+==============================
+
+Order pirmi:
+git add
+git commit
+git push
+
+Kung gusto ra updates:
+fetch -> merge -> push
+
+Kung gusto ipareha tanan:
+fetch -> reset --hard -> push --force
