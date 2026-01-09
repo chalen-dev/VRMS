@@ -1,7 +1,8 @@
-﻿using System;
-using VRMS.Models.Billing;
+﻿using VRMS.Models.Billing;
+using VRMS.Services.Rental;
+using VRMS.Services.Vehicle;
 
-namespace VRMS.Services;
+namespace VRMS.Services.Billing;
 
 public class RateService
 {

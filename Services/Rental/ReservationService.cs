@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 using VRMS.Database;
 using VRMS.Enums;
 using VRMS.Models.Rentals;
+using VRMS.Services.Customer;
+using VRMS.Services.Vehicle;
 
-namespace VRMS.Services;
+namespace VRMS.Services.Rental;
 
 public class ReservationService
 {

@@ -15,6 +15,7 @@ public static class SP_Customers_GetAll
                                           phone,
                                           date_of_birth,
                                           customer_type,
+                                          photo_path,
                                           drivers_license_id
                                       FROM customers
                                       ORDER BY last_name, first_name;

@@ -12,6 +12,7 @@ public static class SP_Customers_Create
                                       IN p_phone VARCHAR(30),
                                       IN p_date_of_birth DATE,
                                       IN p_customer_type VARCHAR(50),
+                                      IN p_photo_path VARCHAR(255),
                                       IN p_drivers_license_id INT
                                   )
                                   BEGIN
@@ -22,6 +23,7 @@ public static class SP_Customers_Create
                                           phone,
                                           date_of_birth,
                                           customer_type,
+                                          photo_path,
                                           drivers_license_id
                                       )
                                       VALUES (
@@ -31,6 +33,7 @@ public static class SP_Customers_Create
                                           p_phone,
                                           p_date_of_birth,
                                           p_customer_type,
+                                          p_photo_path,
                                           p_drivers_license_id
                                       );
 

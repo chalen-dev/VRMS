@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 using VRMS.Database;
-using VRMS.Helpers.SqlEscape;
 using VRMS.Enums;
 using VRMS.Models.Billing;
+using VRMS.Services.Rental;
 
-namespace VRMS.Services;
+namespace VRMS.Services.Billing;
 
 public class BillingService
 {

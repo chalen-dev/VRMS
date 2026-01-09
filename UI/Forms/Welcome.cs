@@ -125,8 +125,6 @@ namespace VRMS.UI.Forms
                 };
 
                 login.ExitApplication += (_, __) => Application.Exit();
-
-                // ✅ Action<User>
                 login.LoginSuccess += OnLoginSuccess;
             }
             else if (control is RegisterUserControl register)
@@ -150,14 +148,11 @@ namespace VRMS.UI.Forms
 
         private void OnLoginSuccess(User user)
         {
-            // Store user in session
             Session.CurrentUser = user;
 
-            // Backward compatibility with MainForm
             Program.CurrentUsername = user.Username;
             Program.CurrentUserRole = user.Role.ToString();
 
-            // Open main app
             var mainForm = new MainForm();
             mainForm.Show();
 

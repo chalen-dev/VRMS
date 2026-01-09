@@ -17,6 +17,7 @@ public static class SP_Customers_GetById
                                           phone,
                                           date_of_birth,
                                           customer_type,
+                                          photo_path,
                                           drivers_license_id
                                       FROM customers
                                       WHERE id = p_customer_id;

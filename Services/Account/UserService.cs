@@ -1,16 +1,16 @@
-﻿using System;
-using System.Data;
-using System.Security.Cryptography;
-using System.Text;
+﻿using System.Data;
 using VRMS.Database;
 using VRMS.Enums;
+using VRMS.Helpers.Security;
 using VRMS.Helpers.SqlEscape;
 using VRMS.Models.Accounts;
 
-namespace VRMS.Services;
+namespace VRMS.Services.Account;
 
 public class UserService
 {
+
+    
     // ----------------------------
     // AUTHENTICATION
     // ----------------------------
@@ -44,7 +44,7 @@ public class UserService
         bool isActive = true
     )
     {
-        var hash = HashPassword(plainPassword);
+        var hash = Password.Hash(plainPassword);
 
         var result = DB.ExecuteQuery(
             $"CALL sp_users_create(" +
@@ -135,7 +135,7 @@ public class UserService
         if (!VerifyPassword(currentPlainPassword, user.PasswordHash))
             throw new InvalidOperationException("Current password is incorrect.");
 
-        var newHash = HashPassword(newPlainPassword);
+        var newHash = Password.Hash(newPlainPassword);
 
         DB.ExecuteNonQuery($"""
                                 CALL sp_users_update_password(
@@ -174,16 +174,9 @@ public class UserService
     // PASSWORD SECURITY
     // ----------------------------
 
-    private static string HashPassword(string password)
-    {
-        using var sha = SHA256.Create();
-        var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
-        return Convert.ToBase64String(bytes);
-    }
-
     private static bool VerifyPassword(string plain, string hash)
     {
-        return HashPassword(plain) == hash;
+        return Password.Hash(plain) == hash;
     }
     
 }

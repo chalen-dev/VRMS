@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 using VRMS.Database;
 using VRMS.Helpers.SqlEscape;
 using VRMS.Models.Damages;
 
-namespace VRMS.Services;
+namespace VRMS.Services.Damage;
 
 public class DamageService
 {
+    private const string DefaultDamagePhotoPath = "Assets/img_placeholder.png";
+    
     // -------------------------------------------------
     // DAMAGE CATALOG (ADMIN)
     // -------------------------------------------------
@@ -54,7 +54,7 @@ public class DamageService
         DB.ExecuteNonQuery($"CALL sp_damages_delete({damageId});");
     }
 
-    public Damage GetDamageById(int damageId)
+    public Models.Damages.Damage GetDamageById(int damageId)
     {
         var table = DB.ExecuteQuery(
             $"CALL sp_damages_get_by_id({damageId});"
@@ -73,24 +73,27 @@ public class DamageService
     public int CreateDamageReport(
         int vehicleInspectionId,
         int damageId,
-        string photoPath)
+        string? photoPath = null
+    )
     {
-        if (string.IsNullOrWhiteSpace(photoPath))
-            throw new InvalidOperationException("Photo path is required.");
-
         // Ensure damage exists
         GetDamageById(damageId);
 
+        var resolvedPhotoPath = string.IsNullOrWhiteSpace(photoPath)
+            ? DefaultDamagePhotoPath
+            : photoPath;
+
         var table = DB.ExecuteQuery($"""
-            CALL sp_damage_reports_create(
-                {vehicleInspectionId},
-                {damageId},
-                '{Sql.Esc(photoPath)}'
-            );
-        """);
+                                         CALL sp_damage_reports_create(
+                                             {vehicleInspectionId},
+                                             {damageId},
+                                             '{Sql.Esc(resolvedPhotoPath)}'
+                                         );
+                                     """);
 
         return Convert.ToInt32(table.Rows[0]["damage_report_id"]);
     }
+
 
     public void ApproveDamageReport(int damageReportId)
     {
@@ -133,9 +136,9 @@ public class DamageService
     // MAPPING
     // -------------------------------------------------
 
-    private static Damage MapDamage(DataRow row)
+    private static Models.Damages.Damage MapDamage(DataRow row)
     {
-        return new Damage
+        return new Models.Damages.Damage
         {
             Id = Convert.ToInt32(row["id"]),
             Description = row["description"].ToString()!,
@@ -145,13 +148,21 @@ public class DamageService
 
     private static DamageReport MapDamageReport(DataRow row)
     {
+        var photoPath = row["photo_path"] == DBNull.Value
+            ? DefaultDamagePhotoPath
+            : row["photo_path"].ToString();
+
+        if (string.IsNullOrWhiteSpace(photoPath))
+            photoPath = DefaultDamagePhotoPath;
+
         return new DamageReport
         {
             Id = Convert.ToInt32(row["id"]),
             VehicleInspectionId = Convert.ToInt32(row["vehicle_inspection_id"]),
             DamageId = Convert.ToInt32(row["damage_id"]),
-            PhotoPath = row["photo_path"].ToString()!,
+            PhotoPath = photoPath!,
             Approved = Convert.ToBoolean(row["approved"])
         };
     }
+
 }

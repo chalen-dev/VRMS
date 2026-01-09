@@ -1,10 +1,9 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
 using VRMS.Database;
 using VRMS.Enums;
-using VRMS.Models.Rentals;
+using VRMS.Services.Vehicle;
 
-namespace VRMS.Services;
+namespace VRMS.Services.Rental;
 
 public class RentalService
 {
@@ -126,7 +125,7 @@ public class RentalService
     // READ
     // -------------------------------------------------
 
-    public Rental GetRentalById(int rentalId)
+    public Models.Rentals.Rental GetRentalById(int rentalId)
     {
         var table = DB.ExecuteQuery(
             $"CALL sp_rentals_get_by_id({rentalId});"
@@ -138,7 +137,7 @@ public class RentalService
         return MapRental(table.Rows[0]);
     }
 
-    public Rental? GetRentalByReservation(int reservationId)
+    public Models.Rentals.Rental? GetRentalByReservation(int reservationId)
     {
         var table = DB.ExecuteQuery(
             $"CALL sp_rentals_get_by_reservation({reservationId});"
@@ -154,9 +153,9 @@ public class RentalService
     // MAPPING
     // -------------------------------------------------
 
-    private static Rental MapRental(DataRow row)
+    private static Models.Rentals.Rental MapRental(DataRow row)
     {
-        return new Rental
+        return new Models.Rentals.Rental
         {
             Id = Convert.ToInt32(row["id"]),
             ReservationId = Convert.ToInt32(row["reservation_id"]),

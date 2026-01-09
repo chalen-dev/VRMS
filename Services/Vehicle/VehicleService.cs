@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 using VRMS.Database;
 using VRMS.Enums;
 using VRMS.Helpers.SqlEscape;
 using VRMS.Models.Fleet;
 
-namespace VRMS.Services;
+namespace VRMS.Services.Vehicle;
 
 public class VehicleService
 {
@@ -14,7 +12,7 @@ public class VehicleService
     // VEHICLES
     // -------------------------------------------------
 
-    public int CreateVehicle(Vehicle vehicle)
+    public int CreateVehicle(Models.Fleet.Vehicle vehicle)
     {
         var table = DB.ExecuteQuery($"""
             CALL sp_vehicles_create(
@@ -37,13 +35,13 @@ public class VehicleService
         return Convert.ToInt32(table.Rows[0]["vehicle_id"]);
     }
 
-    public List<Vehicle> GetAllVehicles()
+    public List<Models.Fleet.Vehicle> GetAllVehicles()
     {
         var table = DB.ExecuteQuery("CALL sp_vehicles_get_all();");
         return MapVehicles(table);
     }
 
-    public Vehicle GetVehicleById(int vehicleId)
+    public Models.Fleet.Vehicle GetVehicleById(int vehicleId)
     {
         var table = DB.ExecuteQuery($"CALL sp_vehicles_get_by_id({vehicleId});");
 
@@ -53,7 +51,7 @@ public class VehicleService
         return MapVehicle(table.Rows[0]);
     }
 
-    public Vehicle GetVehicleFull(int vehicleId)
+    public Models.Fleet.Vehicle GetVehicleFull(int vehicleId)
     {
         var table = DB.ExecuteQuery($"CALL sp_vehicles_get_full({vehicleId});");
 
@@ -387,7 +385,7 @@ public class VehicleService
     // INTERNAL HELPERS
     // -------------------------------------------------
 
-    private static void EnsureNotRetired(Vehicle vehicle)
+    private static void EnsureNotRetired(Models.Fleet.Vehicle vehicle)
     {
         if (vehicle.Status == VehicleStatus.Retired)
             throw new InvalidOperationException("Retired vehicles cannot be modified.");
@@ -431,9 +429,9 @@ public class VehicleService
                 $"Illegal vehicle status transition: {current} → {next}");
     }
 
-    private static Vehicle MapVehicle(DataRow row)
+    private static Models.Fleet.Vehicle MapVehicle(DataRow row)
     {
-        return new Vehicle
+        return new Models.Fleet.Vehicle
         {
             Id = Convert.ToInt32(row["id"]),
             VehicleCode = row["vehicle_code"].ToString()!,
@@ -452,9 +450,9 @@ public class VehicleService
         };
     }
 
-    private static List<Vehicle> MapVehicles(DataTable table)
+    private static List<Models.Fleet.Vehicle> MapVehicles(DataTable table)
     {
-        var list = new List<Vehicle>();
+        var list = new List<Models.Fleet.Vehicle>();
         foreach (DataRow row in table.Rows)
             list.Add(MapVehicle(row));
         return list;
