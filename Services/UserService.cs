@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Data;
 using System.Security.Cryptography;
+using System.Text;
 using VRMS.Database;
+using VRMS.Database.DBHelpers.SqlEscape;
 using VRMS.Enums;
 using VRMS.Models.Accounts;
 
@@ -9,112 +11,105 @@ namespace VRMS.Services;
 
 public class UserService
 {
-    private const int SaltSize = 16;
-    private const int KeySize = 32;
-    private const int Iterations = 100_000;
+    // ----------------------------
+    // AUTHENTICATION
+    // ----------------------------
 
-    public int CreateUser(string username, string password, UserRole role, bool isActive)
+    public User Authenticate(string username, string plainPassword)
     {
-        var passwordHash = HashPassword(password);
+        var table = DB.ExecuteQuery(
+            $"CALL sp_users_authenticate('{Sql.Esc(username)}');"
+        );
 
-        var result = DB.ExecuteScalar($"""
-            CALL sp_users_create(
-                '{username}',
-                '{passwordHash}',
-                '{role}',
-                {isActive.ToString().ToLower()}
-            );
-        """);
-
-        return Convert.ToInt32(result);
-    }
-
-    public User? GetById(int id)
-    {
-        var table = DB.ExecuteQuery($"CALL sp_users_get_by_id({id});");
         if (table.Rows.Count == 0)
-            return null;
-
-        return MapUser(table.Rows[0]);
-    }
-
-    public User? GetByUsername(string username)
-    {
-        var table = DB.ExecuteQuery($"CALL sp_users_get_by_username('{username}');");
-        if (table.Rows.Count == 0)
-            return null;
-
-        return MapUser(table.Rows[0]);
-    }
-
-    public User? Authenticate(string username, string password)
-    {
-        var table = DB.ExecuteQuery($"CALL sp_users_authenticate('{username}');");
-        if (table.Rows.Count == 0)
-            return null;
+            throw new InvalidOperationException("Invalid username or inactive account.");
 
         var row = table.Rows[0];
         var storedHash = row["password_hash"].ToString()!;
 
-        if (!VerifyPassword(password, storedHash))
-            return null;
+        if (!VerifyPassword(plainPassword, storedHash))
+            throw new InvalidOperationException("Invalid password.");
 
-        return MapUser(row);
+        return MaterializeUser(row);
     }
 
-    public void Deactivate(int id)
-    {
-        DB.ExecuteNonQuery($"CALL sp_users_deactivate({id});");
-    }
+    // ----------------------------
+    // CREATE USER
+    // ----------------------------
 
-    private static string HashPassword(string password)
+    public int CreateUser(
+        string username,
+        string plainPassword,
+        UserRole role,
+        bool isActive = true
+    )
     {
-        using var rng = RandomNumberGenerator.Create();
-        var salt = new byte[SaltSize];
-        rng.GetBytes(salt);
+        var hash = HashPassword(plainPassword);
 
-        using var pbkdf2 = new Rfc2898DeriveBytes(
-            password,
-            salt,
-            Iterations,
-            HashAlgorithmName.SHA256
+        var result = DB.ExecuteQuery(
+            $"CALL sp_users_create(" +
+            $"'{Sql.Esc(username)}'," +
+            $"'{Sql.Esc(hash)}'," +
+            $"'{role}'," +
+            $"{(isActive ? "TRUE" : "FALSE")}" +
+            $");"
         );
 
-        var key = pbkdf2.GetBytes(KeySize);
-
-        return $"{Iterations}.{Convert.ToBase64String(salt)}.{Convert.ToBase64String(key)}";
+        return Convert.ToInt32(result.Rows[0]["user_id"]);
     }
 
-    private static bool VerifyPassword(string password, string hash)
+    // ----------------------------
+    // LOOKUPS
+    // ----------------------------
+
+    public User GetById(int userId)
     {
-        var parts = hash.Split('.');
-        if (parts.Length != 3)
-            return false;
-
-        var iterations = Convert.ToInt32(parts[0]);
-        var salt = Convert.FromBase64String(parts[1]);
-        var storedKey = Convert.FromBase64String(parts[2]);
-
-        using var pbkdf2 = new Rfc2898DeriveBytes(
-            password,
-            salt,
-            iterations,
-            HashAlgorithmName.SHA256
+        var table = DB.ExecuteQuery(
+            $"CALL sp_users_get_by_id({userId});"
         );
 
-        var computedKey = pbkdf2.GetBytes(storedKey.Length);
-        return CryptographicOperations.FixedTimeEquals(computedKey, storedKey);
+        if (table.Rows.Count == 0)
+            throw new InvalidOperationException("User not found.");
+
+        return MaterializeUser(table.Rows[0]);
     }
 
-    private static User MapUser(DataRow row)
+    public User GetByUsername(string username)
     {
-        var role = Enum.Parse<UserRole>(row["role"].ToString()!);
+        var table = DB.ExecuteQuery(
+            $"CALL sp_users_get_by_username('{Sql.Esc(username)}');"
+        );
+
+        if (table.Rows.Count == 0)
+            throw new InvalidOperationException("User not found.");
+
+        return MaterializeUser(table.Rows[0]);
+    }
+
+    // ----------------------------
+    // DEACTIVATE
+    // ----------------------------
+
+    public void Deactivate(int userId)
+    {
+        DB.ExecuteNonQuery(
+            $"CALL sp_users_deactivate({userId});"
+        );
+    }
+
+    // ----------------------------
+    // INTERNAL HELPERS
+    // ----------------------------
+
+    private static User MaterializeUser(DataRow row)
+    {
+        var role = Enum.Parse<UserRole>(row["role"].ToString()!, true);
 
         User user = role switch
         {
             UserRole.Admin => new Admin(),
             UserRole.RentalAgent => new RentalAgent(),
-            _ => throw new InvalidOperationException($"Unsupported role: {role}")
+            _ => throw new InvalidOperationException("Unknown user role.")
         };
 
         user.Id = Convert.ToInt32(row["id"]);
@@ -125,4 +120,21 @@ public class UserService
 
         return user;
     }
+
+    // ----------------------------
+    // PASSWORD SECURITY
+    // ----------------------------
+
+    private static string HashPassword(string password)
+    {
+        using var sha = SHA256.Create();
+        var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
+        return Convert.ToBase64String(bytes);
+    }
+
+    private static bool VerifyPassword(string plain, string hash)
+    {
+        return HashPassword(plain) == hash;
+    }
+    
 }

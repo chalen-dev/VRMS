@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using VRMS.Database;
+using VRMS.Database.DBHelpers.SqlEscape;
 using VRMS.Enums;
 using VRMS.Models.Customers;
 
@@ -9,124 +10,190 @@ namespace VRMS.Services;
 
 public class CustomerService
 {
-    // DriversLicense methods
-    public int CreateDriversLicense(DriversLicense license)
+    // ----------------------------
+    // DRIVERS LICENSES
+    // ----------------------------
+
+    public int CreateDriversLicense(
+        string licenseNumber,
+        DateTime issueDate,
+        DateTime expiryDate,
+        string issuingCountry
+    )
     {
-        var result = DB.ExecuteScalar($"""
+        if (expiryDate <= issueDate)
+            throw new InvalidOperationException("Expiry date must be after issue date.");
+
+        var table = DB.ExecuteQuery($"""
             CALL sp_drivers_licenses_create(
-                '{license.LicenseNumber}',
-                '{license.IssueDate:yyyy-MM-dd}',
-                '{license.ExpiryDate:yyyy-MM-dd}',
-                '{license.IssuingCountry}'
+                '{Sql.Esc(licenseNumber)}',
+                '{issueDate:yyyy-MM-dd}',
+                '{expiryDate:yyyy-MM-dd}',
+                '{Sql.Esc(issuingCountry)}'
             );
         """);
 
-        return Convert.ToInt32(result);
+        return Convert.ToInt32(table.Rows[0]["drivers_license_id"]);
     }
 
-    public DriversLicense? GetDriversLicenseById(int id)
+    public DriversLicense GetDriversLicenseById(int licenseId)
     {
-        var table = DB.ExecuteQuery($"CALL sp_drivers_licenses_get_by_id({id});");
-        if (table.Rows.Count == 0) return null;
+        var table = DB.ExecuteQuery(
+            $"CALL sp_drivers_licenses_get_by_id({licenseId});"
+        );
+
+        if (table.Rows.Count == 0)
+            throw new InvalidOperationException("Drivers license not found.");
+
         return MapDriversLicense(table.Rows[0]);
     }
 
     public DriversLicense? GetDriversLicenseByNumber(string licenseNumber)
     {
-        var table = DB.ExecuteQuery($"CALL sp_drivers_licenses_get_by_number('{licenseNumber}');");
-        if (table.Rows.Count == 0) return null;
+        var table = DB.ExecuteQuery(
+            $"CALL sp_drivers_licenses_get_by_number('{Sql.Esc(licenseNumber)}');"
+        );
+
+        if (table.Rows.Count == 0)
+            return null;
+
         return MapDriversLicense(table.Rows[0]);
     }
 
-    public void UpdateDriversLicense(DriversLicense license)
+    public void UpdateDriversLicense(int licenseId, DateTime issueDate, DateTime expiryDate, string issuingCountry)
     {
+        if (expiryDate <= issueDate)
+            throw new InvalidOperationException("Expiry date must be after issue date.");
+
         DB.ExecuteNonQuery($"""
             CALL sp_drivers_licenses_update(
-                {license.Id},
-                '{license.IssueDate:yyyy-MM-dd}',
-                '{license.ExpiryDate:yyyy-MM-dd}',
-                '{license.IssuingCountry}'
+                {licenseId},
+                '{issueDate:yyyy-MM-dd}',
+                '{expiryDate:yyyy-MM-dd}',
+                '{Sql.Esc(issuingCountry)}'
             );
         """);
     }
 
-    public void DeleteDriversLicense(int id)
+    public void DeleteDriversLicense(int licenseId)
     {
-        DB.ExecuteNonQuery($"CALL sp_drivers_licenses_delete({id});");
+        // Note: database has RESTRICT on customers referencing licenses.
+        DB.ExecuteNonQuery($"CALL sp_drivers_licenses_delete({licenseId});");
     }
 
-    // Customer methods
-    public int CreateCustomer(Customer customer)
-    {
-        var existingLicense = GetDriversLicenseById(customer.DriversLicenseId);
-        if (existingLicense == null)
-            throw new InvalidOperationException("Drivers license not found.");
+    // ----------------------------
+    // CUSTOMERS
+    // ----------------------------
 
-        var result = DB.ExecuteScalar($"""
+    public int CreateCustomer(
+        string firstName,
+        string lastName,
+        string email,
+        string phone,
+        DateTime dateOfBirth,
+        CustomerType customerType,
+        int driversLicenseId
+    )
+    {
+        // Ensure license exists
+        var license = GetDriversLicenseById(driversLicenseId);
+
+        // Domain: you may allow creation even if license expired, but typically disallowed.
+        if (license.ExpiryDate < DateTime.UtcNow.Date)
+            throw new InvalidOperationException("Drivers license is expired.");
+
+        var table = DB.ExecuteQuery($"""
             CALL sp_customers_create(
-                '{customer.FirstName}',
-                '{customer.LastName}',
-                '{customer.Email}',
-                '{customer.Phone}',
-                '{customer.DateOfBirth:yyyy-MM-dd}',
-                '{customer.CustomerType}',
-                {customer.DriversLicenseId}
+                '{Sql.Esc(firstName)}',
+                '{Sql.Esc(lastName)}',
+                '{Sql.Esc(email)}',
+                '{Sql.Esc(phone)}',
+                '{dateOfBirth:yyyy-MM-dd}',
+                '{customerType}',
+                {driversLicenseId}
             );
         """);
 
-        return Convert.ToInt32(result);
+        return Convert.ToInt32(table.Rows[0]["customer_id"]);
     }
 
-    public Customer? GetById(int id)
+    public void UpdateCustomer(
+        int customerId,
+        string firstName,
+        string lastName,
+        string email,
+        string phone,
+        CustomerType customerType
+    )
     {
-        var table = DB.ExecuteQuery($"CALL sp_customers_get_by_id({id});");
-        if (table.Rows.Count == 0) return null;
+        // If changing to Blacklisted, that's allowed here. Consumers should use ChangeCustomerType explicitly if desired.
+        DB.ExecuteNonQuery($"""
+            CALL sp_customers_update(
+                {customerId},
+                '{Sql.Esc(firstName)}',
+                '{Sql.Esc(lastName)}',
+                '{Sql.Esc(email)}',
+                '{Sql.Esc(phone)}',
+                '{customerType}'
+            );
+        """);
+    }
+
+    public Customer GetCustomerById(int customerId)
+    {
+        var table = DB.ExecuteQuery(
+            $"CALL sp_customers_get_by_id({customerId});"
+        );
+
+        if (table.Rows.Count == 0)
+            throw new InvalidOperationException("Customer not found.");
+
         return MapCustomer(table.Rows[0]);
     }
 
-    public List<Customer> GetAll()
+    public List<Customer> GetAllCustomers()
     {
         var table = DB.ExecuteQuery("CALL sp_customers_get_all();");
+
         var list = new List<Customer>();
         foreach (DataRow row in table.Rows)
             list.Add(MapCustomer(row));
+
         return list;
     }
 
-    public void UpdateCustomer(Customer customer)
+    public void DeleteCustomer(int customerId)
     {
-        DB.ExecuteNonQuery($"""
-            CALL sp_customers_update(
-                {customer.Id},
-                '{customer.FirstName}',
-                '{customer.LastName}',
-                '{customer.Email}',
-                '{customer.Phone}',
-                '{customer.CustomerType}'
-            );
-        """);
+        // Policy note: DB may prevent deletion if FK constraints exist (e.g., rentals). Service callers should confirm policy.
+        DB.ExecuteNonQuery($"CALL sp_customers_delete({customerId});");
     }
 
-    public void DeleteCustomer(int id)
+    // ----------------------------
+    // ELIGIBILITY GUARDS
+    // ----------------------------
+
+    /// <summary>
+    /// Throws if customer is not eligible to rent at the given date.
+    /// Checks blacklisting and driver's license expiry.
+    /// Age checks (e.g., minimum age) should be enforced in RentalService.
+    /// </summary>
+    public void EnsureCustomerCanRent(int customerId, DateTime asOfDate)
     {
-        DB.ExecuteNonQuery($"CALL sp_customers_delete({id});");
+        var customer = GetCustomerById(customerId);
+
+        if (customer.CustomerType == CustomerType.Blacklisted)
+            throw new InvalidOperationException("Customer is blacklisted and cannot rent.");
+
+        var license = GetDriversLicenseById(customer.DriversLicenseId);
+
+        if (license.ExpiryDate < asOfDate.Date)
+            throw new InvalidOperationException("Customer's driver's license is expired.");
     }
 
-    // Validation helpers
-    public bool IsLicenseExpired(DriversLicense license)
-    {
-        return license.ExpiryDate.Date < DateTime.UtcNow.Date;
-    }
+    // ----------------------------
+    // MAPPING HELPERS
+    // ----------------------------
 
-    public bool IsOfAge(Customer customer, int minimumAge = 21)
-    {
-        var today = DateTime.UtcNow.Date;
-        var age = today.Year - customer.DateOfBirth.Year;
-        if (customer.DateOfBirth.Date > today.AddYears(-age)) age--;
-        return age >= minimumAge;
-    }
-
-    // Mapping
     private static DriversLicense MapDriversLicense(DataRow row)
     {
         return new DriversLicense
@@ -149,7 +216,7 @@ public class CustomerService
             Email = row["email"].ToString()!,
             Phone = row["phone"].ToString()!,
             DateOfBirth = Convert.ToDateTime(row["date_of_birth"]),
-            CustomerType = Enum.Parse<CustomerType>(row["customer_type"].ToString()!),
+            CustomerType = Enum.Parse<CustomerType>(row["customer_type"].ToString()!, true),
             DriversLicenseId = Convert.ToInt32(row["drivers_license_id"])
         };
     }

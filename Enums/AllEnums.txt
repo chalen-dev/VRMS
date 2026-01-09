@@ -1,0 +1,68 @@
+﻿namespace VRMS.Enums
+{
+    public enum CustomerType
+    {
+        Individual,
+        Corporate,
+        Frequent,
+        Blacklisted
+    }
+
+    public enum FuelType
+    {
+        Gasoline,
+        Diesel,
+        Electric,
+        Hybrid
+    }
+
+    public enum InspectionType
+    {
+        Pickup,
+        Return
+    }
+
+    public enum PaymentMethod
+    {
+        Cash,
+        CreditCard,
+        DebitCard,
+        Online
+    }
+
+    public enum RentalStatus
+    {
+        Active,
+        Completed,
+        Late
+    }
+
+    public enum ReservationStatus
+    {
+        Pending,
+        Confirmed,
+        Cancelled
+    }
+
+    public enum TransmissionType
+    {
+        Manual,
+        Automatic
+    }
+
+    public enum UserRole
+    {
+        Admin,
+        RentalAgent
+    }
+
+    public enum VehicleStatus
+    {
+        Available,
+        Reserved,
+        Rented,
+        UnderMaintenance,
+        OutOfService,
+        Retired
+    }
+}
