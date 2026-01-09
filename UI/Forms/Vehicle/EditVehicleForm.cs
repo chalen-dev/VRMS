@@ -12,19 +12,22 @@ namespace VRMS.Forms
         private readonly VehicleService _vehicleService = new();
         private Vehicle _vehicle = null!;
 
-        // ✅ THIS IS THE MISSING CONSTRUCTOR
+        // =========================
+        // CONSTRUCTOR
+        // =========================
+
         public EditVehicleForm(int vehicleId)
         {
             InitializeComponent();
             _vehicleId = vehicleId;
 
             Load += EditVehicleForm_Load;
-            btnSave.Click += btnSave_Click;
-            btnCancel.Click += btnCancel_Click;
+            btnSave.Click += BtnSave_Click;
+            btnCancel.Click += (_, __) => Close();
         }
 
         // =========================
-        // LOAD VEHICLE DATA
+        // LOAD VEHICLE
         // =========================
 
         private void EditVehicleForm_Load(object sender, EventArgs e)
@@ -48,40 +51,60 @@ namespace VRMS.Forms
 
         private void PopulateForm()
         {
-            txtVehicleCode.Text = _vehicle.VehicleCode;
+            // Identity (read-only)
             txtMake.Text = _vehicle.Make;
             txtModel.Text = _vehicle.Model;
             numYear.Value = _vehicle.Year;
-            txtColor.Text = _vehicle.Color;
             txtPlate.Text = _vehicle.LicensePlate;
             txtVIN.Text = _vehicle.VIN;
 
-            cbTransmission.SelectedItem = _vehicle.Transmission.ToString();
-            cbFuel.SelectedItem = _vehicle.FuelType.ToString();
-            cbStatus.SelectedItem = _vehicle.Status.ToString();
+            // Editable
+            txtColor.Text = _vehicle.Color;
+            numMileage.Value = _vehicle.Odometer;
+
+            // Enums
+            cbTransmission.DataSource = Enum.GetValues(typeof(TransmissionType));
+            cbFuel.DataSource = Enum.GetValues(typeof(FuelType));
+            cbStatus.DataSource = Enum.GetValues(typeof(VehicleStatus));
+
+            cbTransmission.SelectedItem = _vehicle.Transmission;
+            cbFuel.SelectedItem = _vehicle.FuelType;
+            cbStatus.SelectedItem = _vehicle.Status;
 
             numSeats.Value = _vehicle.SeatingCapacity;
-            numMileage.Value = _vehicle.Odometer;
+
+            // 🔒 Lock immutable fields (VERY IMPORTANT)
+            txtMake.ReadOnly = true;
+            txtModel.ReadOnly = true;
+            numYear.Enabled = false;
+            txtPlate.ReadOnly = true;
+            txtVIN.ReadOnly = true;
+
+            cbTransmission.Enabled = false;
+            cbFuel.Enabled = false;
+            numSeats.Enabled = false;
         }
 
         // =========================
         // SAVE CHANGES
         // =========================
 
-        private void btnSave_Click(object? sender, EventArgs e)
+        private void BtnSave_Click(object? sender, EventArgs e)
         {
             try
             {
-                // 🔹 Update allowed fields only (matches your service)
+                ValidateForm();
+
+                // Update allowed vehicle fields
                 _vehicleService.UpdateVehicle(
-                    _vehicleId,
-                    txtColor.Text.Trim(),
-                    (int)numMileage.Value,
-                    _vehicle.VehicleCategoryId
+                    vehicleId: _vehicleId,
+                    color: txtColor.Text.Trim(),
+                    newOdometer: (int)numMileage.Value,
+                    categoryId: _vehicle.VehicleCategoryId // unchanged
                 );
 
-                // 🔹 Status change handled separately
-                var newStatus = Enum.Parse<VehicleStatus>(cbStatus.SelectedItem!.ToString()!);
+                // Handle status change separately
+                var newStatus = (VehicleStatus)cbStatus.SelectedItem!;
                 if (newStatus != _vehicle.Status)
                 {
                     _vehicleService.UpdateVehicleStatus(_vehicleId, newStatus);
@@ -101,10 +124,19 @@ namespace VRMS.Forms
             }
         }
 
-        private void btnCancel_Click(object? sender, EventArgs e)
+        // =========================
+        // VALIDATION
+        // =========================
+
+        private void ValidateForm()
         {
-            DialogResult = DialogResult.Cancel;
-            Close();
+            if (string.IsNullOrWhiteSpace(txtColor.Text))
+                throw new InvalidOperationException("Color is required.");
+
+            if (numMileage.Value < _vehicle.Odometer)
+                throw new InvalidOperationException(
+                    "Odometer value cannot be less than the current reading."
+                );
         }
     }
 }

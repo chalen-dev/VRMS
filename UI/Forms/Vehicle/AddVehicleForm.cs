@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using VRMS.Services;
 using VRMS.Models.Fleet;
 using VRMS.Enums;
+using VRMS.UI.Forms;
 
 namespace VRMS.Forms
 {
@@ -15,9 +16,10 @@ namespace VRMS.Forms
             InitializeComponent();
 
             Load += AddVehicleForm_Load;
-            btnSave.Click += btnSave_Click;
-            btnCancel.Click += btnCancel_Click;
-            btnAddImage.Click += btnSelectImage_Click;
+            btnSave.Click += BtnSave_Click;
+            btnCancel.Click += (_, __) => Close();
+            btnAddImage.Click += BtnSelectImage_Click;
+            btnAddCategory.Click += BtnAddCategory_Click;
         }
 
         // =========================
@@ -26,22 +28,30 @@ namespace VRMS.Forms
 
         private void AddVehicleForm_Load(object sender, EventArgs e)
         {
-            // Populate enum-based dropdowns
+            // Enums
             cbTransmission.DataSource = Enum.GetValues(typeof(TransmissionType));
             cbFuel.DataSource = Enum.GetValues(typeof(FuelType));
 
-            cbStatus.DataSource = Enum.GetValues(typeof(VehicleStatus));
+            // Vehicle always starts as Available
+            cbStatus.DataSource = new[] { VehicleStatus.Available };
             cbStatus.SelectedItem = VehicleStatus.Available;
 
-            // TODO (optional): load categories from DB later
-            // For now, your designer already has items
+            LoadCategories();
+        }
+
+        private void LoadCategories()
+        {
+            cbCategory.DataSource = null;
+            cbCategory.DataSource = _vehicleService.GetAllCategories();
+            cbCategory.DisplayMember = "Name";
+            cbCategory.ValueMember = "Id";
         }
 
         // =========================
         // SAVE VEHICLE
         // =========================
 
-        private void btnSave_Click(object? sender, EventArgs e)
+        private void BtnSave_Click(object? sender, EventArgs e)
         {
             try
             {
@@ -49,7 +59,6 @@ namespace VRMS.Forms
 
                 var vehicle = new Vehicle
                 {
-                    VehicleCode = txtVehicleCode.Text.Trim(),
                     Make = txtMake.Text.Trim(),
                     Model = txtModel.Text.Trim(),
                     Year = (int)numYear.Value,
@@ -62,17 +71,15 @@ namespace VRMS.Forms
                     SeatingCapacity = (int)numSeats.Value,
                     Odometer = (int)numMileage.Value,
 
-                    // 🔹 TEMP: category ID (replace later with real categories)
-                    VehicleCategoryId = 1
+                    VehicleCategoryId = (int)cbCategory.SelectedValue
                 };
 
                 int vehicleId = _vehicleService.CreateVehicle(vehicle);
 
-                // 🔹 Status update if not default
-                var selectedStatus = (VehicleStatus)cbStatus.SelectedItem!;
-                if (selectedStatus != VehicleStatus.Available)
+                // Save images (optional)
+                foreach (var item in lstImages.Items)
                 {
-                    _vehicleService.UpdateVehicleStatus(vehicleId, selectedStatus);
+                    _vehicleService.AddVehicleImage(vehicleId, item.ToString()!);
                 }
 
                 DialogResult = DialogResult.OK;
@@ -95,9 +102,6 @@ namespace VRMS.Forms
 
         private void ValidateForm()
         {
-            if (string.IsNullOrWhiteSpace(txtVehicleCode.Text))
-                throw new InvalidOperationException("Vehicle Code is required.");
-
             if (string.IsNullOrWhiteSpace(txtMake.Text))
                 throw new InvalidOperationException("Make is required.");
 
@@ -115,13 +119,16 @@ namespace VRMS.Forms
 
             if (numMileage.Value < 0)
                 throw new InvalidOperationException("Mileage cannot be negative.");
+
+            if (cbCategory.SelectedItem == null)
+                throw new InvalidOperationException("Category is required.");
         }
 
         // =========================
-        // IMAGE HANDLING (BASIC)
+        // IMAGE HANDLING
         // =========================
 
-        private void btnSelectImage_Click(object? sender, EventArgs e)
+        private void BtnSelectImage_Click(object? sender, EventArgs e)
         {
             using OpenFileDialog dlg = new()
             {
@@ -137,13 +144,20 @@ namespace VRMS.Forms
         }
 
         // =========================
-        // CANCEL
+        // ADD CATEGORY
         // =========================
 
-        private void btnCancel_Click(object? sender, EventArgs e)
+        private void BtnAddCategory_Click(object? sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
-            Close();
+            using var form = new AddCategoryForm(_vehicleService)
+            {
+                StartPosition = FormStartPosition.CenterParent
+            };
+
+            if (form.ShowDialog(this) == DialogResult.OK)
+            {
+                LoadCategories();
+            }
         }
     }
 }
