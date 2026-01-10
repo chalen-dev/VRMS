@@ -1,25 +1,37 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using VRMS.Database.Seeders.Users;
 using VRMS.Services.Account;
 
 namespace VRMS.Database.Seeders;
 
 public static class SeederRunner
 {
-    public static void RunAll(IServiceProvider services)
+    public static void RunAll(IServiceProvider services, bool strictMode = true)
     {
+        Console.WriteLine("\n[INFO] Running seeders.\n");
         var seeders = new ISeeder[]
         {
-            new UserSeeder(
+            //Seeder List
+            new Users.UserSeeder(
                 services.GetRequiredService<UserService>()
-            ),
+            )
 
-            // later:
-            // new VehicleSeeder(...)
-            // new RateSeeder(...)
         };
 
         foreach (var seeder in seeders)
-            seeder.Run();
+        {
+            try
+            {
+                seeder.Run();
+                Console.WriteLine($"[OK] {seeder.Name}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] {seeder.Name}");
+                Console.WriteLine($"        {ex.GetType().Name}: {ex.Message}");
+
+                if (strictMode)
+                    throw;
+            }
+        }
     }
 }
