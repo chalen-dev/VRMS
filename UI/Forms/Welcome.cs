@@ -30,19 +30,15 @@ namespace VRMS.UI.Forms
 
             Load += (_, __) =>
             {
-                WindowState = FormWindowState.Maximized;
-                UpdateLayout();
+                // ✅ This makes it "Full Screen" but keeps the Windows UI visible
+                this.WindowState = FormWindowState.Maximized;
 
-                // ✅ IMPORTANT: initial hidden state
+                UpdateLayout();
                 panelLogin.Visible = false;
             };
 
             Resize += (_, __) => UpdateLayout();
         }
-
-        // =========================
-        // ENTRY POINT
-        // =========================
 
         private void btnProceed_Click(object sender, EventArgs e)
         {
@@ -51,16 +47,11 @@ namespace VRMS.UI.Forms
 
             LoadControl(new LoginUserControl());
 
-            // ✅ RESET POSITION BEFORE ANIMATION
             panelLogin.Visible = true;
             panelLogin.Left = -panelLogin.Width;
 
             _animationManager.StartSlideAnimation();
         }
-
-        // =========================
-        // CONTROL LOADER
-        // =========================
 
         private void LoadControl(UserControl control)
         {
@@ -69,27 +60,17 @@ namespace VRMS.UI.Forms
 
             if (control is LoginUserControl login)
             {
-                login.GoToRegisterRequest += (_, __) =>
-                {
-                    LoadControl(new RegisterUserControl());
-                };
-
+                login.GoToRegisterRequest += (_, __) => LoadControl(new RegisterUserControl());
                 login.ExitApplication += (_, __) => Application.Exit();
-
                 login.LoginSuccess += (_, __) =>
                 {
-                    if (login.LoggedInUser == null)
-                        return;
-
-                    HandleLoginSuccess(login.LoggedInUser);
+                    if (login.LoggedInUser != null)
+                        HandleLoginSuccess(login.LoggedInUser);
                 };
             }
             else if (control is RegisterUserControl register)
             {
-                register.GoBackToLoginRequest += (_, __) =>
-                {
-                    LoadControl(new LoginUserControl());
-                };
+                register.GoBackToLoginRequest += (_, __) => LoadControl(new LoginUserControl());
             }
 
             panelLogin.Controls.Add(control);
@@ -97,14 +78,9 @@ namespace VRMS.UI.Forms
             panelLogin.BringToFront();
         }
 
-        // =========================
-        // LOGIN SUCCESS
-        // =========================
-
         private void HandleLoginSuccess(User user)
         {
             Session.CurrentUser = user;
-
             Program.CurrentUsername = user.Username;
             Program.CurrentUserRole = user.Role.ToString();
 
@@ -115,15 +91,9 @@ namespace VRMS.UI.Forms
             mainForm.FormClosed += (_, __) => Application.Exit();
         }
 
-        // =========================
-        // IAnimationHost
-        // =========================
-
         public void OnAnimationStart()
         {
             btnProceed.Enabled = false;
-
-            // ✅ ENSURE VISIBILITY DURING ANIMATION
             panelLogin.Visible = true;
         }
 
@@ -138,10 +108,6 @@ namespace VRMS.UI.Forms
             panelLeft.Visible = false;
             FocusContent();
         }
-
-        // =========================
-        // UI HELPERS
-        // =========================
 
         private void FocusContent()
         {
@@ -163,6 +129,7 @@ namespace VRMS.UI.Forms
 
         private void UpdateLayout()
         {
+            // Ensures panels resize correctly when the window maximizes
             panelRight.Size = panelLogin.Size = ClientSize;
 
             panelLeft.Size = new Size(
@@ -178,7 +145,7 @@ namespace VRMS.UI.Forms
         {
             if (disposing)
             {
-                _animationManager.Dispose();
+                _animationManager?.Dispose();
                 components?.Dispose();
             }
             base.Dispose(disposing);
