@@ -1,6 +1,7 @@
 ﻿using VRMS.Database;
 using VRMS.Database.Exceptions;
 using VRMS.Database.Executors;
+using Helpers.DirectoryCleaner;
 
 namespace VRMS.Terminal.Commands;
 
@@ -13,7 +14,14 @@ public class DropCommand : ICommand
         try
         {
             Drop.Run(DB.ExecuteRaw);
-            return new CommandResult(true, "Database tables dropped successfully.");
+
+            // Clean Storage directory (preserve .gitignore)
+            Dir.Empty("Storage", ".gitignore");
+
+            return new CommandResult(
+                true,
+                "Database tables dropped and storage cleaned successfully."
+            );
         }
         catch (SchemaExecutionException ex)
         {

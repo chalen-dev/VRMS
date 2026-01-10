@@ -10,8 +10,9 @@ public static class M_1006_CreateDriversLicenseProcedures
                                       {SP_DriversLicenses_GetByNumber.Sql()}
                                       {SP_DriversLicenses_Update.Sql()}
                                       {SP_DriversLicenses_Delete.Sql()}
-                                      {SP_DriversLicenses_SetPhoto.Sql()}
-                                      {SP_DriversLicenses_ResetPhoto.Sql()}
+                                      {SP_DriversLicenses_SetFrontPhoto.Sql()}
+                                      {SP_DriversLicenses_SetBackPhoto.Sql()}
+                                      {SP_DriversLicenses_ResetPhotos.Sql()}
                                       """;
 
     public static string Drop() => """
@@ -20,7 +21,8 @@ public static class M_1006_CreateDriversLicenseProcedures
                                    DROP PROCEDURE IF EXISTS sp_drivers_licenses_get_by_number;
                                    DROP PROCEDURE IF EXISTS sp_drivers_licenses_update;
                                    DROP PROCEDURE IF EXISTS sp_drivers_licenses_delete;
-                                   DROP PROCEDURE IF EXISTS sp_drivers_licenses_set_photo;
-                                   DROP PROCEDURE IF EXISTS sp_drivers_licenses_reset_photo;
+                                   DROP PROCEDURE IF EXISTS sp_drivers_licenses_set_front_photo;
+                                   DROP PROCEDURE IF EXISTS sp_drivers_licenses_set_back_photo;
+                                   DROP PROCEDURE IF EXISTS sp_drivers_licenses_reset_photos;
                                    """;
 }

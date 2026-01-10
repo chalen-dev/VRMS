@@ -10,7 +10,9 @@ public class DriversLicenseService
 
     private const string DefaultDriversLicensePhotoPath = "Assets/img_placeholder.png";
     private const string DriversLicensePhotoFolder = "DriversLicenses";
-    private const string DriversLicensePhotoFileName = "license";
+    private const string FrontPhotoFileName = "front";
+    private const string BackPhotoFileName  = "back";
+
 
     // ----------------------------
     // DRIVERS LICENSES
@@ -28,16 +30,18 @@ public class DriversLicenseService
                 "Expiry date must be after issue date.");
 
         var table = DB.Query(
-            "CALL sp_drivers_licenses_create(@number, @issue, @expiry, @country, @photo);",
+            "CALL sp_drivers_licenses_create(@number, @issue, @expiry, @country, @front, @back);",
             ("@number", licenseNumber),
             ("@issue", issueDate),
             ("@expiry", expiryDate),
             ("@country", issuingCountry),
-            ("@photo", DefaultDriversLicensePhotoPath)
+            ("@front", DefaultDriversLicensePhotoPath),
+            ("@back", DefaultDriversLicensePhotoPath)
         );
 
         return Convert.ToInt32(table.Rows[0]["drivers_license_id"]);
     }
+
 
     public DriversLicense GetDriversLicenseById(int licenseId)
     {
@@ -85,6 +89,7 @@ public class DriversLicenseService
         );
     }
 
+
     // ----------------------------
     // UPSERT-LIKE HELPER
     // ----------------------------
@@ -95,8 +100,10 @@ public class DriversLicenseService
         DateTime issueDate,
         DateTime expiryDate,
         string issuingCountry,
-        Stream? photoStream,
-        string? originalFileName
+        Stream? frontPhotoStream,
+        string? frontFileName,
+        Stream? backPhotoStream,
+        string? backFileName
     )
     {
         int resolvedLicenseId;
@@ -122,17 +129,19 @@ public class DriversLicenseService
             resolvedLicenseId = licenseId.Value;
         }
 
-        if (photoStream != null && !string.IsNullOrWhiteSpace(originalFileName))
+        if (frontPhotoStream != null && !string.IsNullOrWhiteSpace(frontFileName))
         {
-            SetDriversLicensePhoto(
-                resolvedLicenseId,
-                photoStream,
-                originalFileName
-            );
+            SetFrontPhoto(resolvedLicenseId, frontPhotoStream, frontFileName);
+        }
+
+        if (backPhotoStream != null && !string.IsNullOrWhiteSpace(backFileName))
+        {
+            SetBackPhoto(resolvedLicenseId, backPhotoStream, backFileName);
         }
 
         return resolvedLicenseId;
     }
+
 
     public void DeleteDriversLicense(int licenseId)
     {
@@ -147,27 +156,25 @@ public class DriversLicenseService
     // PHOTO MANAGEMENT
     // ----------------------------
 
-    public void SetDriversLicensePhoto(
+    private void SetDriversLicensePhoto(
         int licenseId,
         Stream photoStream,
-        string originalFileName
+        string originalFileName,
+        string fileName,
+        string procedure
     )
     {
         var extension = Path.GetExtension(originalFileName);
         if (string.IsNullOrWhiteSpace(extension))
-            throw new InvalidOperationException(
-                "Invalid license photo file.");
+            throw new InvalidOperationException("Invalid license photo file.");
 
         var directory = GetDriversLicensePhotoDirectory(licenseId);
         Directory.CreateDirectory(directory);
 
-        foreach (var file in Directory.GetFiles(directory))
-            File.Delete(file);
-
         var relativePath = Path.Combine(
             DriversLicensePhotoFolder,
             licenseId.ToString(),
-            $"{DriversLicensePhotoFileName}{extension}"
+            $"{fileName}{extension}"
         );
 
         var fullPath = Path.Combine(StorageRoot, relativePath);
@@ -176,13 +183,13 @@ public class DriversLicenseService
         photoStream.CopyTo(fs);
 
         DB.Execute(
-            "CALL sp_drivers_licenses_set_photo(@id, @path);",
+            $"CALL {procedure}(@id, @path);",
             ("@id", licenseId),
             ("@path", relativePath)
         );
     }
 
-    public void DeleteDriversLicensePhoto(int licenseId)
+    public void DeleteDriversLicensePhotos(int licenseId)
     {
         var directory = GetDriversLicensePhotoDirectory(licenseId);
 
@@ -190,7 +197,7 @@ public class DriversLicenseService
             Directory.Delete(directory, true);
 
         DB.Execute(
-            "CALL sp_drivers_licenses_reset_photo(@id);",
+            "CALL sp_drivers_licenses_reset_photos(@id);",
             ("@id", licenseId)
         );
     }
@@ -210,12 +217,10 @@ public class DriversLicenseService
 
     private static DriversLicense MapDriversLicense(DataRow row)
     {
-        var photoPath = row["photo_path"] == DBNull.Value
-            ? DefaultDriversLicensePhotoPath
-            : row["photo_path"].ToString();
-
-        if (string.IsNullOrWhiteSpace(photoPath))
-            photoPath = DefaultDriversLicensePhotoPath;
+        string Resolve(object value) =>
+            value == DBNull.Value || string.IsNullOrWhiteSpace(value.ToString())
+                ? DefaultDriversLicensePhotoPath
+                : value.ToString()!;
 
         return new DriversLicense
         {
@@ -224,7 +229,39 @@ public class DriversLicenseService
             IssueDate = Convert.ToDateTime(row["issue_date"]),
             ExpiryDate = Convert.ToDateTime(row["expiry_date"]),
             IssuingCountry = row["issuing_country"].ToString()!,
-            PhotoPath = photoPath
+            FrontPhotoPath = Resolve(row["front_photo_path"]),
+            BackPhotoPath  = Resolve(row["back_photo_path"])
         };
+    }
+
+    
+    public void SetFrontPhoto(
+        int licenseId,
+        Stream photoStream,
+        string originalFileName
+    )
+    {
+        SetDriversLicensePhoto(
+            licenseId,
+            photoStream,
+            originalFileName,
+            FrontPhotoFileName,
+            "sp_drivers_licenses_set_front_photo"
+        );
+    }
+
+    public void SetBackPhoto(
+        int licenseId,
+        Stream photoStream,
+        string originalFileName
+    )
+    {
+        SetDriversLicensePhoto(
+            licenseId,
+            photoStream,
+            originalFileName,
+            BackPhotoFileName,
+            "sp_drivers_licenses_set_back_photo"
+        );
     }
 }

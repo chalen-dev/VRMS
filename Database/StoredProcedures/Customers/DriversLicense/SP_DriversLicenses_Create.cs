@@ -10,7 +10,8 @@ public static class SP_DriversLicenses_Create
                                       IN p_issue_date DATE,
                                       IN p_expiry_date DATE,
                                       IN p_issuing_country VARCHAR(50),
-                                      IN p_photo_path VARCHAR(255)
+                                      IN p_front_photo_path VARCHAR(255),
+                                      IN p_back_photo_path VARCHAR(255)
                                   )
                                   BEGIN
                                       INSERT INTO drivers_licenses (
@@ -18,16 +19,18 @@ public static class SP_DriversLicenses_Create
                                           issue_date,
                                           expiry_date,
                                           issuing_country,
-                                          photo_path
+                                          front_photo_path,
+                                          back_photo_path
                                       )
                                       VALUES (
                                           p_license_number,
                                           p_issue_date,
                                           p_expiry_date,
                                           p_issuing_country,
-                                          p_photo_path
+                                          p_front_photo_path,
+                                          p_back_photo_path
                                       );
-                                  
+
                                       SELECT LAST_INSERT_ID() AS drivers_license_id;
                                   END;
                                   """;

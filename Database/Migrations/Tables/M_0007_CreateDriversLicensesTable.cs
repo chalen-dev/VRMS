@@ -9,10 +9,11 @@ public static class M_0007_CreateDriversLicensesTable
                                          issue_date DATE NOT NULL,
                                          expiry_date DATE NOT NULL,
                                          issuing_country VARCHAR(50) NOT NULL,
-                                         photo_path VARCHAR(255) NULL
+                                         front_photo_path VARCHAR(255) NULL,
+                                         back_photo_path VARCHAR(255) NULL
                                      );
                                      """;
-    
+
     public static string Drop() => """
                                    DROP TABLE IF EXISTS drivers_licenses;
                                    """;
