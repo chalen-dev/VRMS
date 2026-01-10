@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.Extensions.Configuration;
 using VRMS.Database;
@@ -15,6 +16,9 @@ namespace VRMS
         public static string CurrentUsername { get; set; } = "Guest";
         public static string CurrentUserRole { get; set; } = "User";
 
+        [DllImport("kernel32.dll")]
+        private static extern bool FreeConsole();
+        
         [STAThread]
         static void Main(string[] args)
         {
@@ -50,6 +54,7 @@ namespace VRMS
             // ----------------------------
             // GUI MODE
             // ----------------------------
+            FreeConsole();
             ApplicationConfiguration.Initialize();
             Application.Run(new Welcome());
         }

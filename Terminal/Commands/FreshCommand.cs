@@ -1,6 +1,9 @@
-﻿using VRMS.Database;
+﻿using Microsoft.Extensions.DependencyInjection;
+using VRMS.Database;
 using VRMS.Database.Exceptions;
 using VRMS.Database.Executors;
+using VRMS.Database.Seeders;
+using VRMS.Services.Account;
 
 namespace VRMS.Terminal.Commands;
 
@@ -12,9 +15,23 @@ public class FreshCommand : ICommand
     {
         try
         {
+            // 1. Drop & migrate
             Drop.Run(DB.ExecuteRaw);
             Create.Run(DB.QueryRaw, DB.ExecuteRaw);
-            return new CommandResult(true, "Database migrated fresh successfully.");
+
+            // 2. Build DI (same as SeedCommand)
+            var services = new ServiceCollection();
+            services.AddSingleton<UserService>();
+
+            var provider = services.BuildServiceProvider();
+
+            // 3. Run seeders
+            SeederRunner.RunAll(provider);
+
+            return new CommandResult(
+                true,
+                "Database migrated and seeded successfully."
+            );
         }
         catch (SchemaExecutionException ex)
         {
@@ -34,6 +51,12 @@ public class FreshCommand : ICommand
                  """
             );
         }
+        catch (Exception ex)
+        {
+            return new CommandResult(
+                false,
+                $"Fresh failed:\n{ex.Message}"
+            );
+        }
     }
-
 }
