@@ -17,8 +17,6 @@ namespace VRMS.Controls
         private readonly CustomerService _customerService;
 
         private Customer? _selectedCustomer;
-
-        // UI-only image preview
         private Image? _profilePreviewImage;
 
         public CustomersView()
@@ -42,10 +40,10 @@ namespace VRMS.Controls
 
         private void InitializeCustomerTypeCombo()
         {
-            cbCustomerType.DataSource = new List<CustomerType>
+            cbCustomerType.DataSource = new List<CustomerCategory>
             {
-                CustomerType.Individual,
-                CustomerType.Corporate
+                CustomerCategory.Individual,
+                CustomerCategory.Corporate
             };
 
             cbCustomerType.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -56,7 +54,6 @@ namespace VRMS.Controls
             btnSave.Click += BtnSave_Click;
             btnDelete.Click += BtnDelete_Click;
             btnClear.Click += (_, _) => ClearForm();
-
             btnManageAccount.Click += BtnManageAccount_Click;
             btnEmergencyContacts.Click += BtnEmergencyContacts_Click;
 
@@ -86,9 +83,16 @@ namespace VRMS.Controls
             {
                 dgvCustomers.Columns.Add(new DataGridViewTextBoxColumn
                 {
-                    HeaderText = "Name",
+                    HeaderText = "First Name",
+                    DataPropertyName = "FirstName",
+                    Width = 140
+                });
+
+                dgvCustomers.Columns.Add(new DataGridViewTextBoxColumn
+                {
+                    HeaderText = "Last Name",
                     DataPropertyName = "LastName",
-                    AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+                    Width = 140
                 });
 
                 dgvCustomers.Columns.Add(new DataGridViewTextBoxColumn
@@ -167,25 +171,27 @@ namespace VRMS.Controls
         }
 
         // =====================================================
-        // CREATE / UPDATE
+        // CREATE / UPDATE (MATCHES SERVICE)
         // =====================================================
 
         private void CreateCustomer()
         {
             int licenseId = _driversLicenseService.CreateDriversLicense(
-                txtLicenseNum.Text,
+                txtLicenseNum.Text.Trim(),
                 dtpIssueDate.Value.Date,
                 dtpExpiryDate.Value.Date,
-                txtLicenseState.Text
+                txtLicenseState.Text.Trim()
             );
 
             int customerId = _customerService.CreateCustomer(
-                txtFirstName.Text,
-                txtLastName.Text,
-                txtEmail.Text,
-                txtPhone.Text,
+                txtFirstName.Text.Trim(),
+                txtLastName.Text.Trim(),
+                txtEmail.Text.Trim(),
+                txtPhone.Text.Trim(),
                 dtpDOB.Value.Date,
-                (CustomerType)cbCustomerType.SelectedItem!,
+                (CustomerCategory)cbCustomerType.SelectedItem!,
+                chkLoyalty.Checked,
+                chkBlacklist.Checked,
                 licenseId
             );
 
@@ -196,12 +202,13 @@ namespace VRMS.Controls
         {
             _customerService.UpdateCustomer(
                 _selectedCustomer!.Id,
-                txtFirstName.Text,
-                txtLastName.Text,
-                txtEmail.Text,
-                txtPhone.Text,
-                dtpDOB.Value.Date,
-                (CustomerType)cbCustomerType.SelectedItem!
+                txtFirstName.Text.Trim(),
+                txtLastName.Text.Trim(),
+                txtEmail.Text.Trim(),
+                txtPhone.Text.Trim(),
+                (CustomerCategory)cbCustomerType.SelectedItem!,
+                chkLoyalty.Checked,
+                chkBlacklist.Checked
             );
 
             SaveProfilePhoto(_selectedCustomer.Id);
@@ -247,17 +254,10 @@ namespace VRMS.Controls
                 return;
 
             using var ms = new MemoryStream();
-            _profilePreviewImage.Save(
-                ms,
-                System.Drawing.Imaging.ImageFormat.Jpeg
-            );
+            _profilePreviewImage.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
             ms.Position = 0;
 
-            _customerService.SetCustomerPhoto(
-                customerId,
-                ms,
-                "profile.jpg"
-            );
+            _customerService.SetCustomerPhoto(customerId, ms, "profile.jpg");
         }
 
         private void LoadProfilePhoto(string relativePath)
@@ -265,25 +265,18 @@ namespace VRMS.Controls
             picCustomerPhoto.Image?.Dispose();
 
             var fullPath = Path.Combine("Storage", relativePath);
-
-            if (File.Exists(fullPath))
-            {
-                using var fs = new FileStream(
-                    fullPath,
-                    FileMode.Open,
-                    FileAccess.Read
-                );
-
-                picCustomerPhoto.Image = Image.FromStream(fs);
-            }
-            else
+            if (!File.Exists(fullPath))
             {
                 picCustomerPhoto.Image = null;
+                return;
             }
+
+            using var fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+            picCustomerPhoto.Image = Image.FromStream(fs);
         }
 
         // =====================================================
-        // CLEAR
+        // CLEAR / POPULATE
         // =====================================================
 
         private void ClearForm()
@@ -294,6 +287,9 @@ namespace VRMS.Controls
             ClearTextBoxes(this);
 
             cbCustomerType.SelectedIndex = 0;
+            chkLoyalty.Checked = false;
+            chkBlacklist.Checked = false;
+
             dtpDOB.Value = DateTime.Today.AddYears(-21);
             dtpIssueDate.Value = DateTime.Today;
             dtpExpiryDate.Value = DateTime.Today.AddYears(5);
@@ -308,6 +304,22 @@ namespace VRMS.Controls
             UpdateSaveButtonState();
         }
 
+        private void PopulateForm(Customer c)
+        {
+            txtFirstName.Text = c.FirstName;
+            txtLastName.Text = c.LastName;
+            txtEmail.Text = c.Email;
+            txtPhone.Text = c.Phone;
+            dtpDOB.Value = c.DateOfBirth;
+
+            cbCustomerType.SelectedItem = c.Category;
+            chkLoyalty.Checked = c.IsFrequent;
+            chkBlacklist.Checked = c.IsBlacklisted;
+
+            UpdateAgeLabel();
+            LoadProfilePhoto(c.PhotoPath);
+        }
+
         private void ClearTextBoxes(Control parent)
         {
             foreach (Control c in parent.Controls)
@@ -320,21 +332,8 @@ namespace VRMS.Controls
         }
 
         // =====================================================
-        // HELPERS
+        // VALIDATION
         // =====================================================
-
-        private void PopulateForm(Customer c)
-        {
-            txtFirstName.Text = c.FirstName;
-            txtLastName.Text = c.LastName;
-            txtEmail.Text = c.Email;
-            txtPhone.Text = c.Phone;
-            dtpDOB.Value = c.DateOfBirth;
-            cbCustomerType.SelectedItem = c.CustomerType;
-
-            UpdateAgeLabel();
-            LoadProfilePhoto(c.PhotoPath);
-        }
 
         private bool ValidateForm()
         {
@@ -383,14 +382,13 @@ namespace VRMS.Controls
             return age;
         }
 
+        // =====================================================
+        // MISC
+        // =====================================================
+
         private void BtnManageAccount_Click(object? sender, EventArgs e)
         {
-            MessageBox.Show(
-                "Account management comes later.",
-                "Info",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information
-            );
+            MessageBox.Show("Account management comes later.", "Info");
         }
 
         private void BtnCaptureLicense_Click(object? sender, EventArgs e)
@@ -402,10 +400,7 @@ namespace VRMS.Controls
 
         private void BtnCheckDrivingRecord_Click(object? sender, EventArgs e)
         {
-            MessageBox.Show(
-                "No external driving record system connected.",
-                "Info"
-            );
+            MessageBox.Show("No external driving record system connected.", "Info");
         }
 
         private void BtnEmergencyContacts_Click(object? sender, EventArgs e)

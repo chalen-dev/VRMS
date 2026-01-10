@@ -284,7 +284,7 @@
             btnClear.TabIndex = 2;
             btnClear.Text = "🔄 Clear";
             btnClear.UseVisualStyleBackColor = false;
-            btnClear.Click += BtnClear_Click;
+           
             // 
             // tabControl1
             // 
