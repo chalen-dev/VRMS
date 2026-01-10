@@ -236,6 +236,7 @@
             btnSave.TabIndex = 0;
             btnSave.Text = "💾 Save";
             btnSave.UseVisualStyleBackColor = false;
+            btnSave.Click += BtnSave_Click;
             // 
             // btnManageAccount
             // 
@@ -267,6 +268,7 @@
             btnDelete.TabIndex = 1;
             btnDelete.Text = "🗑️ Delete";
             btnDelete.UseVisualStyleBackColor = false;
+            btnDelete.Click += BtnDelete_Click;
             // 
             // btnClear
             // 
@@ -282,6 +284,7 @@
             btnClear.TabIndex = 2;
             btnClear.Text = "🔄 Clear";
             btnClear.UseVisualStyleBackColor = false;
+            btnClear.Click += BtnClear_Click;
             // 
             // tabControl1
             // 
@@ -294,7 +297,7 @@
             tabControl1.Margin = new Padding(4, 5, 4, 5);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(925, 894);
+            tabControl1.Size = new Size(924, 894);
             tabControl1.TabIndex = 0;
             // 
             // tabPage1
@@ -324,7 +327,7 @@
             tabPage1.Margin = new Padding(3, 4, 3, 4);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new Padding(20);
-            tabPage1.Size = new Size(917, 858);
+            tabPage1.Size = new Size(916, 858);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Personal Information";
             // 
@@ -399,6 +402,7 @@
             btnUploadPhoto.TabIndex = 13;
             btnUploadPhoto.Text = "📂 Upload";
             btnUploadPhoto.UseVisualStyleBackColor = false;
+            btnUploadPhoto.Click += BtnBrowseProfilePhoto_Click;
             // 
             // label12
             // 
@@ -538,7 +542,7 @@
             tabPage2.Margin = new Padding(3, 4, 3, 4);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new Padding(20);
-            tabPage2.Size = new Size(917, 858);
+            tabPage2.Size = new Size(916, 858);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Driver's License";
             // 
@@ -584,6 +588,7 @@
             btnCheckDrivingRecord.TabIndex = 1;
             btnCheckDrivingRecord.Text = "🛡️ Check Driving Record";
             btnCheckDrivingRecord.UseVisualStyleBackColor = false;
+            btnCheckDrivingRecord.Click += BtnCheckDrivingRecord_Click;
             // 
             // btnCaptureLicense
             // 
@@ -599,6 +604,7 @@
             btnCaptureLicense.TabIndex = 0;
             btnCaptureLicense.Text = "📷 Capture License Photo";
             btnCaptureLicense.UseVisualStyleBackColor = false;
+            btnCaptureLicense.Click += BtnCaptureLicense_Click;
             // 
             // groupBox2
             // 
@@ -710,7 +716,7 @@
             tabPage3.Margin = new Padding(3, 4, 3, 4);
             tabPage3.Name = "tabPage3";
             tabPage3.Padding = new Padding(20);
-            tabPage3.Size = new Size(917, 858);
+            tabPage3.Size = new Size(916, 858);
             tabPage3.TabIndex = 2;
             tabPage3.Text = "History & Status";
             // 

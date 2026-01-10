@@ -187,14 +187,15 @@ namespace VRMS.Controls
 
         private void UpdateCustomer()
         {
-            _customerService.UpdateCustomer(
-                _selectedCustomer!.Id,
-                txtFirstName.Text,
-                txtLastName.Text,
-                txtEmail.Text,
-                txtPhone.Text,
-                (CustomerType)cbCustomerType.SelectedItem!
-            );
+          _customerService.UpdateCustomer(
+            _selectedCustomer!.Id,
+            txtFirstName.Text,
+            txtLastName.Text,
+            txtEmail.Text,
+            txtPhone.Text,
+            dtpDOB.Value.Date,   
+            (CustomerType)cbCustomerType.SelectedItem!
+);
         }
 
         // =====================================================

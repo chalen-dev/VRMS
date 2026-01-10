@@ -56,7 +56,7 @@ namespace VRMS.Services.Customer
         }
 
         // =====================================================
-        // UPDATE (CURRENT SIGNATURE)
+        // UPDATE (✅ FIXED: NOW MATCHES STORED PROCEDURE)
         // =====================================================
 
         public void UpdateCustomer(
@@ -65,46 +65,19 @@ namespace VRMS.Services.Customer
             string lastName,
             string email,
             string phone,
+            DateTime dateOfBirth,      // ✅ REQUIRED
             CustomerType customerType
         )
         {
             DB.Execute(
-                "CALL sp_customers_update(@id,@first,@last,@email,@phone,@type);",
+                "CALL sp_customers_update(@id,@first,@last,@email,@phone,@dob,@type);",
                 ("@id", customerId),
                 ("@first", firstName),
                 ("@last", lastName),
                 ("@email", email),
                 ("@phone", phone),
+                ("@dob", dateOfBirth),
                 ("@type", customerType.ToString())
-            );
-        }
-
-        // =====================================================
-        // 🔥 BACKWARD-COMPAT OVERLOAD (DO NOT REMOVE)
-        // =====================================================
-        // This exists ONLY to prevent build failures from
-        // previously-compiled callers that expect 7 params.
-        // Safe, intentional, and required for team stability.
-        // =====================================================
-
-        public void UpdateCustomer(
-            int customerId,
-            string firstName,
-            string lastName,
-            string email,
-            string phone,
-            CustomerType customerType,
-            string? unusedPhotoPath
-        )
-        {
-            // Forward to the actual implementation
-            UpdateCustomer(
-                customerId,
-                firstName,
-                lastName,
-                email,
-                phone,
-                customerType
             );
         }
 
