@@ -14,7 +14,9 @@ public static class SP_Customers_GetAll
                                           email,
                                           phone,
                                           date_of_birth,
-                                          customer_type,
+                                          customer_category,
+                                          is_frequent,
+                                          is_blacklisted,
                                           photo_path,
                                           drivers_license_id
                                       FROM customers

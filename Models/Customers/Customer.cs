@@ -11,7 +11,10 @@ public class Customer : Person
 
     public DateTime DateOfBirth { get; set; }
 
-    public CustomerType CustomerType { get; set; }
+    public CustomerCategory Category { get; set; }
+
+    public bool IsFrequent { get; set; }
+    public bool IsBlacklisted { get; set; }
 
     public string? PhotoPath { get; set; }
 

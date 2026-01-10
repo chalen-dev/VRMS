@@ -11,7 +11,9 @@ public static class SP_Customers_Update
                                       IN p_last_name VARCHAR(50),
                                       IN p_email VARCHAR(100),
                                       IN p_phone VARCHAR(30),
-                                      IN p_customer_type VARCHAR(50),
+                                      IN p_customer_category VARCHAR(50),
+                                      IN p_is_frequent BOOLEAN,
+                                      IN p_is_blacklisted BOOLEAN,
                                       IN p_photo_path VARCHAR(255)
                                   )
                                   BEGIN
@@ -21,7 +23,9 @@ public static class SP_Customers_Update
                                           last_name = p_last_name,
                                           email = p_email,
                                           phone = p_phone,
-                                          customer_type = p_customer_type,
+                                          customer_category = p_customer_category,
+                                          is_frequent = p_is_frequent,
+                                          is_blacklisted = p_is_blacklisted,
                                           photo_path = p_photo_path
                                       WHERE id = p_customer_id;
                                   END;

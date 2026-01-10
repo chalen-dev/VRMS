@@ -11,7 +11,9 @@ public static class SP_Customers_Create
                                       IN p_email VARCHAR(100),
                                       IN p_phone VARCHAR(30),
                                       IN p_date_of_birth DATE,
-                                      IN p_customer_type VARCHAR(50),
+                                      IN p_customer_category VARCHAR(50),
+                                      IN p_is_frequent BOOLEAN,
+                                      IN p_is_blacklisted BOOLEAN,
                                       IN p_photo_path VARCHAR(255),
                                       IN p_drivers_license_id INT
                                   )
@@ -22,7 +24,9 @@ public static class SP_Customers_Create
                                           email,
                                           phone,
                                           date_of_birth,
-                                          customer_type,
+                                          customer_category,
+                                          is_frequent,
+                                          is_blacklisted,
                                           photo_path,
                                           drivers_license_id
                                       )
@@ -32,7 +36,9 @@ public static class SP_Customers_Create
                                           p_email,
                                           p_phone,
                                           p_date_of_birth,
-                                          p_customer_type,
+                                          p_customer_category,
+                                          p_is_frequent,
+                                          p_is_blacklisted,
                                           p_photo_path,
                                           p_drivers_license_id
                                       );
