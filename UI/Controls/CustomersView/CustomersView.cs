@@ -205,6 +205,7 @@ namespace VRMS.Controls
                 txtEmail.Text.Trim(),
                 txtPhone.Text.Trim(),
                 txtAddress.Text.Trim(),
+                dtpDOB.Value.Date,
                 (CustomerCategory)cbCustomerType.SelectedItem!,
                 chkLoyalty.Checked,
                 chkBlacklist.Checked
