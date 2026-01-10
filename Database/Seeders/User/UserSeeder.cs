@@ -5,6 +5,8 @@ namespace VRMS.Database.Seeders.Users;
 
 public class UserSeeder : ISeeder
 {
+    public string Name => "Users";
+
     private readonly UserService _userService;
 
     private static readonly (string Username, string Password)[] Admins =

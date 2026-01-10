@@ -2,5 +2,6 @@
 
 public interface ISeeder
 {
+    string Name { get; }
     void Run();
 }

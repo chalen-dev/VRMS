@@ -12,6 +12,8 @@ public class SeedCommand : ICommand
     {
         try
         {
+            Console.WriteLine("\n[INFO] Running seeders.\n");
+            
             var services = new ServiceCollection();
 
             // Register the services here first
