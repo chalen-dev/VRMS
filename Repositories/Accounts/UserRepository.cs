@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using VRMS.Database;
 using VRMS.Enums;
 using VRMS.Models.Accounts;
@@ -18,14 +19,18 @@ public class UserRepository
         bool isActive)
     {
         var table = DB.Query(
-            "CALL sp_users_create(@username,@hash,@role,@active);",
+            "CALL sp_users_create(@username,@password_hash,@role,@active);",
             ("@username", username),
-            ("@hash", passwordHash),
+            ("@password_hash", passwordHash),
             ("@role", role.ToString()),
             ("@active", isActive)
         );
 
-        return Convert.ToInt32(table.Rows[0]["user_id"]);
+        if (table.Rows.Count == 0)
+            throw new InvalidOperationException(
+                "Failed to create user.");
+
+        return Convert.ToInt32(table.Rows[0]["id"]);
     }
 
     // ----------------------------
@@ -76,12 +81,12 @@ public class UserRepository
     // UPDATE
     // ----------------------------
 
-    public void UpdatePassword(int id, string hash)
+    public void UpdatePassword(int id, string passwordHash)
     {
         DB.Execute(
-            "CALL sp_users_update_password(@id,@hash);",
+            "CALL sp_users_update_password(@id,@password_hash);",
             ("@id", id),
-            ("@hash", hash)
+            ("@password_hash", passwordHash)
         );
     }
 
@@ -114,16 +119,15 @@ public class UserRepository
 
     private static User Map(DataRow row)
     {
-        var role =
-            Enum.Parse<UserRole>(
-                row["role"].ToString()!, true);
+        var role = Enum.Parse<UserRole>(
+            row["role"].ToString()!, true);
 
         User user = role switch
         {
             UserRole.Admin => new Admin(),
             UserRole.RentalAgent => new RentalAgent(),
             _ => throw new InvalidOperationException(
-                "Unknown user role.")
+                $"Unsupported user role: {role}")
         };
 
         user.Id = Convert.ToInt32(row["id"]);
