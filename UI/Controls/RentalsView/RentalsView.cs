@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 using VRMS.Enums;
 using VRMS.Forms;
@@ -29,6 +30,7 @@ namespace VRMS.Controls
         // =========================
         // SERVICES
         // =========================
+
         private readonly CustomerService _customerService;
         private readonly VehicleService _vehicleService;
         private readonly ReservationService _reservationService;
@@ -37,6 +39,7 @@ namespace VRMS.Controls
         // =========================
         // CONSTRUCTOR
         // =========================
+
         public RentalsView()
         {
             InitializeComponent();
@@ -44,7 +47,9 @@ namespace VRMS.Controls
             // =========================
             // REPOSITORIES
             // =========================
+
             var customerRepo = new CustomerRepository();
+
             var vehicleRepo = new VehicleRepository();
             var categoryRepo = new VehicleCategoryRepository();
             var featureRepo = new VehicleFeatureRepository();
@@ -64,10 +69,9 @@ namespace VRMS.Controls
             // =========================
             // SERVICES
             // =========================
-            var driversLicenseService = new DriversLicenseService();
 
-            _customerService = new CustomerService(
-                driversLicenseService);
+            var driversLicenseService = new DriversLicenseService();
+            _customerService = new CustomerService(driversLicenseService);
 
             _vehicleService = new VehicleService(
                 vehicleRepo,
@@ -84,8 +88,7 @@ namespace VRMS.Controls
                 reservationRepo
             );
 
-            var rateService = new RateService(
-                rateConfigRepo);
+            var rateService = new RateService(rateConfigRepo);
 
             var billingService = new BillingService(
                 rentalRepo,
@@ -108,6 +111,7 @@ namespace VRMS.Controls
             // =========================
             // EVENTS
             // =========================
+
             Load += RentalsView_Load;
             dgvRentals.SelectionChanged += DgvRentals_SelectionChanged;
         }
@@ -115,6 +119,7 @@ namespace VRMS.Controls
         // =========================
         // LOAD
         // =========================
+
         private void RentalsView_Load(object sender, EventArgs e)
         {
             ConfigureGrid();
@@ -159,45 +164,39 @@ namespace VRMS.Controls
                 Width = 100
             });
 
-            // -----------------------------
-            // STATUS COLOR CODING
-            // -----------------------------
             dgvRentals.CellFormatting -= DgvRentals_CellFormatting;
             dgvRentals.CellFormatting += DgvRentals_CellFormatting;
         }
 
-
         private void LoadRentals()
         {
             dgvRentals.DataSource = null;
-            dgvRentals.DataSource =
-                _rentalService.GetAllRentals();
+            dgvRentals.DataSource = _rentalService.GetAllRentals();
+
+            UpdateActionButtons();
         }
 
         // =========================
         // SELECTION
         // =========================
+
         private void DgvRentals_SelectionChanged(object? sender, EventArgs e)
         {
+            UpdateActionButtons();
+
             if (dgvRentals.SelectedRows.Count == 0)
             {
-                btnReturn.Enabled = false;
-                btnViewDetails.Enabled = false;
+                lblDetailVehicle.Text = "Vehicle";
+                lblDetailCustomer.Text = "Customer";
+                lblDetailDates.Text = "Period";
+                lblDetailAmount.Text = "Total: ₱ --";
+                pbVehicle.Image = null;
                 return;
             }
 
             if (dgvRentals.SelectedRows[0].DataBoundItem is not Rental rental)
                 return;
 
-            // -----------------------------
-            // BUTTON STATE
-            // -----------------------------
-            btnViewDetails.Enabled = true;
-            btnReturn.Enabled = rental.Status == RentalStatus.Active;
-
-            // -----------------------------
-            // LOAD RELATED DATA (SERVICES)
-            // -----------------------------
             var reservation =
                 _reservationService.GetReservationById(
                     rental.ReservationId);
@@ -210,9 +209,6 @@ namespace VRMS.Controls
                 _customerService.GetCustomerById(
                     reservation.CustomerId);
 
-            // -----------------------------
-            // UI DETAILS (REAL FIELDS ONLY)
-            // -----------------------------
             lblDetailVehicle.Text =
                 $"{vehicle.Year} {vehicle.Make} {vehicle.Model}";
 
@@ -222,15 +218,56 @@ namespace VRMS.Controls
             lblDetailDates.Text =
                 $"From {rental.PickupDate:d} to {rental.ExpectedReturnDate:d}";
 
-            lblDetailAmount.Text = "Total: ₱ --"; // billing wired next
+            lblDetailAmount.Text = "Total: ₱ --";
 
-            pbVehicle.Image = null; // vehicle image wiring later
+            pbVehicle.Image = null;
         }
 
+        // =========================
+        // BUTTON STATE LOGIC
+        // =========================
+
+        private void UpdateActionButtons()
+        {
+            bool hasRows = dgvRentals.Rows.Count > 0;
+            bool hasSelection = dgvRentals.SelectedRows.Count > 0;
+
+            bool canView = hasRows && hasSelection;
+
+            bool canReturn =
+                canView &&
+                dgvRentals.SelectedRows[0].DataBoundItem is Rental r &&
+                r.Status == RentalStatus.Active;
+
+            // View Details
+            btnViewDetails.Enabled = canView;
+            btnViewDetails.BackColor = canView
+                ? Color.FromArgb(52, 152, 219)
+                : Color.LightGray;
+            btnViewDetails.ForeColor = canView
+                ? Color.White
+                : Color.DarkGray;
+            btnViewDetails.Cursor = canView
+                ? Cursors.Hand
+                : Cursors.Default;
+
+            // Return Vehicle
+            btnReturn.Enabled = canReturn;
+            btnReturn.BackColor = canReturn
+                ? Color.FromArgb(241, 196, 15)
+                : Color.LightGray;
+            btnReturn.ForeColor = canReturn
+                ? Color.White
+                : Color.DarkGray;
+            btnReturn.Cursor = canReturn
+                ? Cursors.Hand
+                : Cursors.Default;
+        }
 
         // =========================
         // BUTTONS
         // =========================
+
         private void BtnNewRental_Click(object sender, EventArgs e)
         {
             using var form = new NewRentalForm(
@@ -246,6 +283,9 @@ namespace VRMS.Controls
 
         private void BtnReturn_Click(object sender, EventArgs e)
         {
+            if (!btnReturn.Enabled)
+                return;
+
             if (dgvRentals.SelectedRows.Count == 0)
                 return;
 
@@ -266,8 +306,14 @@ namespace VRMS.Controls
             using var form = new RentalDetailsForm();
             form.ShowDialog(this);
         }
-        
-        private void DgvRentals_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
+
+        // =========================
+        // STATUS COLOR CODING
+        // =========================
+
+        private void DgvRentals_CellFormatting(
+            object? sender,
+            DataGridViewCellFormattingEventArgs e)
         {
             if (dgvRentals.Columns[e.ColumnIndex].DataPropertyName != "Status")
                 return;
@@ -287,6 +333,5 @@ namespace VRMS.Controls
                 _ => e.CellStyle.ForeColor
             };
         }
-
     }
 }
