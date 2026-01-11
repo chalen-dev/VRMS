@@ -26,6 +26,8 @@ namespace VRMS.UI.Forms.Rentals
             _vehicleService = vehicleService;
             _reservationService = reservationService;
             _rentalService = rentalService;
+            
+            cbVehicle.SelectedIndexChanged += CbVehicle_SelectedIndexChanged;
 
             Load += NewRentalForm_Load;
             btnSave.Click += btnSave_Click;
@@ -60,7 +62,15 @@ namespace VRMS.UI.Forms.Rentals
 
             cbVehicle.DisplayMember = "DisplayName";
             cbVehicle.ValueMember = "Id";
+
+            // Make sure something is selected so SelectedIndexChanged fires / UI shows an odometer
+            if (cbVehicle.Items.Count > 0 && cbVehicle.SelectedIndex == -1)
+                cbVehicle.SelectedIndex = 0;
+
+            // Populate odometer for the currently selected vehicle
+            UpdateOdometerFromSelectedVehicle();
         }
+
         
         private void LoadFuelLevels()
         {
@@ -78,6 +88,27 @@ namespace VRMS.UI.Forms.Rentals
             cbFuel.ValueMember = "Value";
 
             cbFuel.SelectedValue = FuelLevel.Full;
+        }
+        
+        private void CbVehicle_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            UpdateOdometerFromSelectedVehicle();
+        }
+
+        private void UpdateOdometerFromSelectedVehicle()
+        {
+            // Ensure user can't type into the odometer field
+            txtOdometer.ReadOnly = true;
+            txtOdometer.TabStop = false;
+
+            if (cbVehicle.SelectedItem is Vehicle v)
+            {
+                txtOdometer.Text = v.Odometer.ToString();
+            }
+            else
+            {
+                txtOdometer.Text = string.Empty;
+            }
         }
 
 

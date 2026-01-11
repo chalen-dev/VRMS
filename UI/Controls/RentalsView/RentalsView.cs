@@ -36,6 +36,8 @@ namespace VRMS.Controls
         private readonly ReservationService _reservationService;
         private readonly RentalService _rentalService;
 
+        private List<RentalGridRow> _allRows = new();
+
         // =========================
         // CONSTRUCTOR
         // =========================
@@ -123,7 +125,9 @@ namespace VRMS.Controls
         private void RentalsView_Load(object sender, EventArgs e)
         {
             ConfigureGrid();
+            LoadStatusFilter();
             LoadRentals();
+            txtSearch.TextChanged += (_, __) => ApplyFilters();
         }
 
         private void ConfigureGrid()
@@ -137,8 +141,15 @@ namespace VRMS.Controls
             dgvRentals.Columns.Add(new DataGridViewTextBoxColumn
             {
                 HeaderText = "Rental ID",
-                DataPropertyName = "Id",
+                DataPropertyName = "RentalId",
                 Width = 80
+            });
+            
+            dgvRentals.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Customer",
+                DataPropertyName = "CustomerName",
+                Width = 180
             });
 
             dgvRentals.Columns.Add(new DataGridViewTextBoxColumn
@@ -170,10 +181,40 @@ namespace VRMS.Controls
 
         private void LoadRentals()
         {
-            dgvRentals.DataSource = null;
-            dgvRentals.DataSource = _rentalService.GetAllRentals();
+            var rentals = _rentalService.GetAllRentals();
 
-            UpdateActionButtons();
+            _allRows = rentals.Select(r =>
+            {
+                var reservation =
+                    _reservationService.GetReservationById(r.ReservationId);
+
+                var customer =
+                    _customerService.GetCustomerById(reservation.CustomerId);
+
+                return new RentalGridRow
+                {
+                    RentalId = r.Id,
+                    PickupDate = r.PickupDate,
+                    ExpectedReturnDate = r.ExpectedReturnDate,
+                    Status = r.Status,
+                    CustomerName = $"{customer.FirstName} {customer.LastName}"
+                };
+            }).ToList();
+
+            ApplyFilters();
+        }
+        
+        private void LoadStatusFilter()
+        {
+            cbStatusFilter.Items.Clear();
+            cbStatusFilter.Items.Add("All");
+
+            foreach (var status in Enum.GetValues(typeof(RentalStatus)))
+                cbStatusFilter.Items.Add(status);
+
+            cbStatusFilter.SelectedIndex = 0;
+
+            cbStatusFilter.SelectedIndexChanged += (_, __) => ApplyFilters();
         }
 
         // =========================
@@ -194,8 +235,11 @@ namespace VRMS.Controls
                 return;
             }
 
-            if (dgvRentals.SelectedRows[0].DataBoundItem is not Rental rental)
+            if (dgvRentals.SelectedRows[0].DataBoundItem is not RentalGridRow row)
                 return;
+
+            var rental =
+                _rentalService.GetRentalById(row.RentalId);
 
             var reservation =
                 _reservationService.GetReservationById(
@@ -236,8 +280,8 @@ namespace VRMS.Controls
 
             bool canReturn =
                 canView &&
-                dgvRentals.SelectedRows[0].DataBoundItem is Rental r &&
-                r.Status == RentalStatus.Active;
+                dgvRentals.SelectedRows[0].DataBoundItem is RentalGridRow row &&
+                row.Status == RentalStatus.Active;
 
             // View Details
             btnViewDetails.Enabled = canView;
@@ -333,5 +377,29 @@ namespace VRMS.Controls
                 _ => e.CellStyle.ForeColor
             };
         }
+        
+        private void ApplyFilters()
+        {
+            IEnumerable<RentalGridRow> filtered = _allRows;
+
+            // Status filter
+            if (cbStatusFilter.SelectedItem is RentalStatus status)
+            {
+                filtered = filtered.Where(r => r.Status == status);
+            }
+
+            // Search by customer name
+            var search = txtSearch.Text.Trim();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                filtered = filtered.Where(r =>
+                    r.CustomerName.Contains(search, StringComparison.OrdinalIgnoreCase));
+            }
+
+            dgvRentals.DataSource = filtered.ToList();
+            UpdateActionButtons();
+        }
+
     }
 }
