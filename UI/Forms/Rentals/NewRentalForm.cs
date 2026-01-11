@@ -39,6 +39,7 @@ namespace VRMS.UI.Forms.Rentals
         {
             LoadCustomers();
             LoadVehicles();
+            LoadFuelLevels();
         }
 
         private void LoadCustomers()
@@ -60,6 +61,25 @@ namespace VRMS.UI.Forms.Rentals
             cbVehicle.DisplayMember = "DisplayName";
             cbVehicle.ValueMember = "Id";
         }
+        
+        private void LoadFuelLevels()
+        {
+            cbFuel.DataSource =
+                Enum.GetValues(typeof(FuelLevel))
+                    .Cast<FuelLevel>()
+                    .Select(f => new
+                    {
+                        Value = f,
+                        Text = VRMS.Helpers.FuelLevelHelper.ToDisplay(f)
+                    })
+                    .ToList();
+
+            cbFuel.DisplayMember = "Text";
+            cbFuel.ValueMember = "Value";
+
+            cbFuel.SelectedValue = FuelLevel.Full;
+        }
+
 
         // -------------------------------
         // SAVE / NEXT STEP
@@ -116,12 +136,17 @@ namespace VRMS.UI.Forms.Rentals
 
                     // Confirm reservation
                     _reservationService.ConfirmReservation(reservationId);
-
+                    
+                    // Get selected fuel level
+                    FuelLevel startFuelLevel =
+                        (FuelLevel)cbFuel.SelectedValue;
+                    
                     // Start rental
                     int rentalId =
                         _rentalService.StartRental(
                             reservationId,
-                            dtPickup.Value
+                            dtPickup.Value,
+                            startFuelLevel
                         );
 
                     MessageBox.Show(
