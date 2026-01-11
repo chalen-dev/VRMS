@@ -14,7 +14,7 @@ public class SeedCommand : ICommand
             Console.WriteLine("\n[INFO] Running seeders.\n");
             
             var services = new ServiceCollection();
-            SeederServiceRegistry.Register(services);
+            ServiceRepositoryRegistry.Register(services);
 
             var provider = services.BuildServiceProvider();
             SeederRunner.RunAll(provider);

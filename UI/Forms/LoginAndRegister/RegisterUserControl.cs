@@ -71,8 +71,8 @@ namespace VRMS.Controls
                 _userService.CreateUser(
                     username,
                     password,
-                    UserRole.RentalAgent, // default role
-                    isActive: true
+                    UserRole.RentalAgent,
+                    true
                 );
 
                 MessageBox.Show(

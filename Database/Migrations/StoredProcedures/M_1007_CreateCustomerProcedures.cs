@@ -1,4 +1,4 @@
-﻿using VRMS.Database.StoredProcedureImplementations.Customers.Customer;
+﻿using VRMS.Database.SPImplementations.Customers.Customer;
 
 namespace VRMS.Database.Migrations.StoredProcedures;
 

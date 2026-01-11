@@ -1,4 +1,4 @@
-﻿using VRMS.Database.StoredProcedureImplementations.Fleet.VehicleCategories;
+﻿using VRMS.Database.SPImplementations.Fleet.VehicleCategories;
 
 namespace VRMS.Database.Migrations.StoredProcedures;
 

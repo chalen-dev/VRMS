@@ -1,4 +1,4 @@
-﻿using VRMS.Database.StoredProcedureImplementations.Accounts;
+﻿using VRMS.Database.SPImplementations.Accounts;
 
 namespace VRMS.Database.Migrations.StoredProcedures;
 
@@ -12,6 +12,7 @@ public static class M_1001_CreateUserProcedures
                                       {SP_Users_Deactivate.Sql()}
                                       {SP_Users_UpdatePassword.Sql()}
                                       {SP_Users_UpdateProfile.Sql()}
+                                      {SP_Users_UpdatePhoto.Sql()}
                                       """;
 
     public static string Drop() => """
@@ -22,5 +23,6 @@ public static class M_1001_CreateUserProcedures
                                    DROP PROCEDURE IF EXISTS sp_users_deactivate;
                                    DROP PROCEDURE IF EXISTS sp_users_update_password;
                                    DROP PROCEDURE IF EXISTS sp_users_update_profile;
+                                   DROP PROCEDURE IF EXISTS sp_users_update_photo;
                                    """;
 }

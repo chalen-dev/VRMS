@@ -1,4 +1,4 @@
-﻿using VRMS.Database.StoredProcedureImplementations.Fleet.VehicleFeatureMapping;
+﻿using VRMS.Database.SPImplementations.Fleet.VehicleFeatureMapping;
 
 namespace VRMS.Database.Migrations;
 

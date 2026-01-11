@@ -1,4 +1,4 @@
-﻿using VRMS.Database.StoredProcedureImplementations.Billing.RateConfiguration;
+﻿using VRMS.Database.SPImplementations.Billing.RateConfiguration;
 
 namespace VRMS.Database.Migrations;
 

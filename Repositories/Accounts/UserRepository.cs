@@ -16,22 +16,24 @@ public class UserRepository
         string username,
         string passwordHash,
         UserRole role,
-        bool isActive)
+        bool isActive,
+        string? photoPath)
     {
         var table = DB.Query(
-            "CALL sp_users_create(@username,@password_hash,@role,@active);",
+            "CALL sp_users_create(@username,@password_hash,@role,@active,@photo);",
             ("@username", username),
             ("@password_hash", passwordHash),
             ("@role", role.ToString()),
-            ("@active", isActive)
+            ("@active", isActive),
+            ("@photo", photoPath)
         );
 
         if (table.Rows.Count == 0)
-            throw new InvalidOperationException(
-                "Failed to create user.");
+            throw new InvalidOperationException("Failed to create user.");
 
         return Convert.ToInt32(table.Rows[0]["id"]);
     }
+
 
     // ----------------------------
     // READ
@@ -112,6 +114,16 @@ public class UserRepository
             ("@id", id)
         );
     }
+    
+    public void UpdatePhoto(int userId, string photoPath)
+    {
+        DB.Execute(
+            "CALL sp_users_update_photo(@id,@photo);",
+            ("@id", userId),
+            ("@photo", photoPath)
+        );
+    }
+
 
     // ----------------------------
     // MAPPING
@@ -135,6 +147,10 @@ public class UserRepository
         user.PasswordHash = row["password_hash"].ToString()!;
         user.Role = role;
         user.IsActive = Convert.ToBoolean(row["is_active"]);
+        user.PhotoPath =
+            row["photo_path"] == DBNull.Value
+                ? null
+                : row["photo_path"].ToString();
 
         return user;
     }

@@ -1,4 +1,4 @@
-﻿using VRMS.Database.StoredProcedureImplementations.Billing.Invoice;
+﻿using VRMS.Database.SPImplementations.Billing.Invoice;
 
 namespace VRMS.Database.Migrations;
 

@@ -1,4 +1,4 @@
-﻿using VRMS.Database.StoredProcedureImplementations.Customers.DriversLicense;
+﻿using VRMS.Database.SPImplementations.Customers.DriversLicense;
 
 namespace VRMS.Database.Migrations.StoredProcedures;
 

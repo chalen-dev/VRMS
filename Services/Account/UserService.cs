@@ -1,5 +1,8 @@
-﻿using VRMS.Enums;
+﻿using System;
+using System.IO;
+using VRMS.Enums;
 using VRMS.Helpers.Security;
+using VRMS.Helpers.Storage;
 using VRMS.Models.Accounts;
 using VRMS.Repositories.Accounts;
 
@@ -8,24 +11,36 @@ namespace VRMS.Services.Account;
 /// <summary>
 /// Provides business logic for user authentication,
 /// account lifecycle management, and profile maintenance.
-/// 
+///
 /// This service acts as the single authority for:
 /// - Authentication & password validation
 /// - User creation and deactivation
 /// - Password changes
 /// - Profile and role updates
+/// - User photo storage and lifecycle management
 /// </summary>
 public class UserService
 {
-    /// <summary>
-    /// Repository responsible for direct user data access.
-    /// </summary>
+    // ----------------------------
+    // CONSTANTS
+    // ----------------------------
+
+    private const string UserPhotoFolder = "Users";
+    private const string UserPhotoFileName = "profile";
+
+    private const string DefaultUserPhotoPath =
+        "Assets/profile_img.png";
+
+    // ----------------------------
+    // REPOSITORY
+    // ----------------------------
+
     private readonly UserRepository _userRepo;
 
-    /// <summary>
-    /// Initializes the user service with its required repository.
-    /// </summary>
-    /// <param name="userRepo">User repository instance</param>
+    // ----------------------------
+    // INIT
+    // ----------------------------
+
     public UserService(UserRepository userRepo)
     {
         _userRepo = userRepo;
@@ -35,17 +50,6 @@ public class UserService
     // AUTHENTICATION
     // ----------------------------
 
-    /// <summary>
-    /// Authenticates a user using username and plaintext password.
-    /// </summary>
-    /// <param name="username">Username used for login</param>
-    /// <param name="plainPassword">Plaintext password provided by the user</param>
-    /// <returns>
-    /// The authenticated <see cref="User"/> object if credentials are valid
-    /// </returns>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when the password is invalid
-    /// </exception>
     public User Authenticate(
         string username,
         string plainPassword)
@@ -59,6 +63,9 @@ public class UserService
             throw new InvalidOperationException(
                 "Invalid password.");
 
+        user.PhotoPath =
+            ResolvePhoto(user.PhotoPath);
+
         return user;
     }
 
@@ -66,19 +73,6 @@ public class UserService
     // CREATE USER
     // ----------------------------
 
-    /// <summary>
-    /// Creates a new user account.
-    /// </summary>
-    /// <param name="username">Unique username</param>
-    /// <param name="plainPassword">Initial plaintext password</param>
-    /// <param name="role">Assigned user role</param>
-    /// <param name="isActive">Indicates whether the account is active</param>
-    /// <returns>
-    /// The newly created user's ID
-    /// </returns>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when the username is empty or invalid
-    /// </exception>
     public int CreateUser(
         string username,
         string plainPassword,
@@ -89,43 +83,48 @@ public class UserService
             throw new InvalidOperationException(
                 "Username cannot be empty.");
 
-        var hash = Password.Hash(plainPassword);
+        var hash =
+            Password.Hash(plainPassword);
 
+        // User starts with NO uploaded photo
         return _userRepo.Create(
             username,
             hash,
             role,
-            isActive);
+            isActive,
+            null);
     }
 
     // ----------------------------
     // LOOKUPS
     // ----------------------------
 
-    /// <summary>
-    /// Retrieves a user by their unique identifier.
-    /// </summary>
-    /// <param name="userId">User ID</param>
-    /// <returns>The matching <see cref="User"/> record</returns>
     public User GetById(int userId)
-        => _userRepo.GetById(userId);
+    {
+        var user =
+            _userRepo.GetById(userId);
 
-    /// <summary>
-    /// Retrieves a user by their username.
-    /// </summary>
-    /// <param name="username">Username</param>
-    /// <returns>The matching <see cref="User"/> record</returns>
+        user.PhotoPath =
+            ResolvePhoto(user.PhotoPath);
+
+        return user;
+    }
+
     public User GetByUsername(string username)
-        => _userRepo.GetByUsername(username);
+    {
+        var user =
+            _userRepo.GetByUsername(username);
+
+        user.PhotoPath =
+            ResolvePhoto(user.PhotoPath);
+
+        return user;
+    }
 
     // ----------------------------
     // DEACTIVATE
     // ----------------------------
 
-    /// <summary>
-    /// Deactivates a user account without deleting it.
-    /// </summary>
-    /// <param name="userId">User ID</param>
     public void Deactivate(int userId)
         => _userRepo.Deactivate(userId);
 
@@ -133,21 +132,13 @@ public class UserService
     // PASSWORD MANAGEMENT
     // ----------------------------
 
-    /// <summary>
-    /// Changes a user's password after verifying the current password.
-    /// </summary>
-    /// <param name="userId">User ID</param>
-    /// <param name="currentPlainPassword">Current plaintext password</param>
-    /// <param name="newPlainPassword">New plaintext password</param>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when the current password does not match
-    /// </exception>
     public void ChangePassword(
         int userId,
         string currentPlainPassword,
         string newPlainPassword)
     {
-        var user = _userRepo.GetById(userId);
+        var user =
+            _userRepo.GetById(userId);
 
         if (!Password.Verify(
                 currentPlainPassword,
@@ -167,16 +158,6 @@ public class UserService
     // PROFILE MANAGEMENT
     // ----------------------------
 
-    /// <summary>
-    /// Updates a user's profile details including username, role, and activation state.
-    /// </summary>
-    /// <param name="userId">User ID</param>
-    /// <param name="username">Updated username</param>
-    /// <param name="role">Updated user role</param>
-    /// <param name="isActive">Updated activation status</param>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when the username is empty or invalid
-    /// </exception>
     public void UpdateUserProfile(
         int userId,
         string username,
@@ -193,4 +174,53 @@ public class UserService
             role,
             isActive);
     }
+
+    // ----------------------------
+    // USER PHOTO MANAGEMENT
+    // ----------------------------
+
+    public void SetUserPhoto(
+        int userId,
+        Stream photoStream,
+        string originalFileName)
+    {
+        var relativePath =
+            FileStorageHelper.SaveSingleFile(
+                photoStream,
+                originalFileName,
+                Path.Combine(
+                    UserPhotoFolder,
+                    userId.ToString()
+                ),
+                UserPhotoFileName,
+                clearDirectoryFirst: true
+            );
+
+        _userRepo.UpdatePhoto(
+            userId,
+            relativePath);
+    }
+
+    public void DeleteUserPhoto(int userId)
+    {
+        FileStorageHelper.DeleteDirectory(
+            Path.Combine(
+                UserPhotoFolder,
+                userId.ToString()
+            )
+        );
+
+        _userRepo.UpdatePhoto(
+            userId,
+            null);
+    }
+
+    // ----------------------------
+    // HELPERS
+    // ----------------------------
+
+    private static string ResolvePhoto(string? path)
+        => string.IsNullOrWhiteSpace(path)
+            ? DefaultUserPhotoPath
+            : path;
 }

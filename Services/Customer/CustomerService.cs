@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using VRMS.Database;
 using VRMS.Enums;
+using VRMS.Helpers.Storage;
 using VRMS.Repositories.Customers;
 
 namespace VRMS.Services.Customer
@@ -20,11 +21,6 @@ namespace VRMS.Services.Customer
     /// </summary>
     public class CustomerService
     {
-        /// <summary>
-        /// Root directory for persistent storage.
-        /// </summary>
-        private static readonly string StorageRoot =
-            Path.Combine(AppContext.BaseDirectory, "Storage");
 
         /// <summary>
         /// Default customer profile image path.
@@ -187,10 +183,14 @@ namespace VRMS.Services.Customer
         /// </summary>
         public void DeleteCustomer(int customerId)
         {
-            var directory = GetCustomerPhotoDirectory(customerId);
+            FileStorageHelper.DeleteDirectory(
+                Path.Combine(
+                    CustomerPhotoFolder,
+                    customerId.ToString()
+                )
+            );
 
-            if (Directory.Exists(directory))
-                Directory.Delete(directory, true);
+            _repo.Delete(customerId);
 
             _repo.Delete(customerId);
         }
@@ -217,36 +217,21 @@ namespace VRMS.Services.Customer
             string originalFileName
         )
         {
-            if (photoStream.CanSeek)
-                photoStream.Position = 0; // REQUIRED FOR STREAM REUSE
-
-            var extension = Path.GetExtension(originalFileName);
-            if (string.IsNullOrWhiteSpace(extension))
-                throw new InvalidOperationException(
-                    "Invalid photo file.");
-
-            var directory = GetCustomerPhotoDirectory(customerId);
-            Directory.CreateDirectory(directory);
-
-            // Remove existing photo files
-            foreach (var file in Directory.GetFiles(directory))
-                File.Delete(file);
-
-            var relativePath = Path.Combine(
-                CustomerPhotoFolder,
-                customerId.ToString(),
-                $"{CustomerPhotoFileName}{extension}"
-            );
-
-            var fullPath = Path.Combine(StorageRoot, relativePath);
-
-            using var fs =
-                new FileStream(fullPath, FileMode.Create, FileAccess.Write);
-
-            photoStream.CopyTo(fs);
+            var relativePath =
+                FileStorageHelper.SaveSingleFile(
+                    photoStream,
+                    originalFileName,
+                    Path.Combine(
+                        CustomerPhotoFolder,
+                        customerId.ToString()
+                    ),
+                    CustomerPhotoFileName,
+                    clearDirectoryFirst: true
+                );
 
             _repo.SetPhoto(customerId, relativePath);
         }
+
 
         /// <summary>
         /// Deletes a customer's profile photo and resets it
@@ -254,13 +239,16 @@ namespace VRMS.Services.Customer
         /// </summary>
         public void DeleteCustomerPhoto(int customerId)
         {
-            var directory = GetCustomerPhotoDirectory(customerId);
-
-            if (Directory.Exists(directory))
-                Directory.Delete(directory, true);
+            FileStorageHelper.DeleteDirectory(
+                Path.Combine(
+                    CustomerPhotoFolder,
+                    customerId.ToString()
+                )
+            );
 
             _repo.ResetPhoto(customerId);
         }
+
 
         // =====================================================
         // ELIGIBILITY
@@ -292,21 +280,6 @@ namespace VRMS.Services.Customer
                 throw new InvalidOperationException(
                     "Driver's license expired.");
         }
-
-        // =====================================================
-        // MAPPING HELPERS
-        // =====================================================
-
-        /// <summary>
-        /// Resolves the file system directory for a customer's photo storage.
-        /// </summary>
-        private static string GetCustomerPhotoDirectory(int customerId)
-        {
-            return Path.Combine(
-                StorageRoot,
-                CustomerPhotoFolder,
-                customerId.ToString()
-            );
-        }
+        
     }
 }

@@ -11,7 +11,8 @@ public static class M_0002_CreateUsersTable
                                          username VARCHAR(50) NOT NULL UNIQUE,
                                          password_hash VARCHAR(255) NOT NULL,
                                          role {Tbl.ToEnum<UserRole>()} NOT NULL,
-                                         is_active BOOLEAN NOT NULL DEFAULT TRUE
+                                         is_active BOOLEAN NOT NULL DEFAULT TRUE,
+                                         photo_path VARCHAR(255) NULL
                                      );
                                      """;
     

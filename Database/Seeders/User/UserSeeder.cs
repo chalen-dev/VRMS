@@ -63,7 +63,7 @@ public class UserSeeder : ISeeder
                 username,
                 password,
                 role,
-                isActive: true
+                true
             );
         }
     }

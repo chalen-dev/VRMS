@@ -1,4 +1,4 @@
-﻿using VRMS.Database.StoredProcedureImplementations.Fleet.MaintenanceRecord;
+﻿using VRMS.Database.SPImplementations.Fleet.MaintenanceRecord;
 
 namespace VRMS.Database.Migrations;
 

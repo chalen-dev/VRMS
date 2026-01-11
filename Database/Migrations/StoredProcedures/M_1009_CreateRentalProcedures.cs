@@ -1,4 +1,4 @@
-﻿using VRMS.Database.StoredProcedureImplementations.Rentals.Rental;
+﻿using VRMS.Database.SPImplementations.Rentals.Rental;
 
 namespace VRMS.Database.Migrations;
 

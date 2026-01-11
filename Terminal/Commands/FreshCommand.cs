@@ -21,7 +21,7 @@ public class FreshCommand : ICommand
 
             //Register services for seeder use
             var services = new ServiceCollection();
-            SeederServiceRegistry.Register(services);
+            ServiceRepositoryRegistry.Register(services);
 
             //Run seeders
             var provider = services.BuildServiceProvider();

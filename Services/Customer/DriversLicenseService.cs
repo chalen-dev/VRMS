@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using VRMS.Helpers.Storage;
 using VRMS.Models.Customers;
 using VRMS.Repositories.Customers;
 
@@ -16,12 +17,6 @@ namespace VRMS.Services.Customer;
 /// </summary>
 public class DriversLicenseService
 {
-    /// <summary>
-    /// Root directory for persistent file storage.
-    /// </summary>
-    private static readonly string StorageRoot =
-        Path.Combine(AppContext.BaseDirectory, "Storage");
-
     /// <summary>
     /// Folder name used for storing driver's license photos.
     /// </summary>
@@ -216,18 +211,23 @@ public class DriversLicenseService
         string originalFileName
     )
     {
-        var path = SavePhoto(
-            licenseId,
-            photoStream,
-            originalFileName,
-            FrontPhotoFileName
-        );
+        var relativePath =
+            FileStorageHelper.SaveSingleFile(
+                photoStream,
+                originalFileName,
+                Path.Combine(
+                    DriversLicensePhotoFolder,
+                    licenseId.ToString()
+                ),
+                FrontPhotoFileName
+            );
 
         _repo.SetFrontPhoto(
             licenseId,
-            path
+            relativePath
         );
     }
+
 
     /// <summary>
     /// Stores or replaces the back photo of a driver's license.
@@ -238,18 +238,23 @@ public class DriversLicenseService
         string originalFileName
     )
     {
-        var path = SavePhoto(
-            licenseId,
-            photoStream,
-            originalFileName,
-            BackPhotoFileName
-        );
+        var relativePath =
+            FileStorageHelper.SaveSingleFile(
+                photoStream,
+                originalFileName,
+                Path.Combine(
+                    DriversLicensePhotoFolder,
+                    licenseId.ToString()
+                ),
+                BackPhotoFileName
+            );
 
         _repo.SetBackPhoto(
             licenseId,
-            path
+            relativePath
         );
     }
+
 
     /// <summary>
     /// Deletes all driver's license photos from the file system
@@ -257,11 +262,12 @@ public class DriversLicenseService
     /// </summary>
     public void DeleteDriversLicensePhotos(int licenseId)
     {
-        var directory =
-            GetDriversLicensePhotoDirectory(licenseId);
-
-        if (Directory.Exists(directory))
-            Directory.Delete(directory, true);
+        FileStorageHelper.DeleteDirectory(
+            Path.Combine(
+                DriversLicensePhotoFolder,
+                licenseId.ToString()
+            )
+        );
 
         _repo.ResetPhotos(licenseId);
     }
@@ -280,63 +286,5 @@ public class DriversLicenseService
         if (expiry <= issue)
             throw new InvalidOperationException(
                 "Expiry date must be after issue date.");
-    }
-
-    /// <summary>
-    /// Saves a driver's license photo to the file system.
-    ///
-    /// The photo stream is rewound if seekable to ensure
-    /// correct write behavior.
-    /// </summary>
-    /// <returns>Relative storage path</returns>
-    private static string SavePhoto(
-        int licenseId,
-        Stream photoStream,
-        string originalFileName,
-        string fileName
-    )
-    {
-        if (photoStream.CanSeek)
-            photoStream.Position = 0;   // REQUIRED FOR STREAM REUSE
-
-        var extension =
-            Path.GetExtension(originalFileName);
-
-        if (string.IsNullOrWhiteSpace(extension))
-            throw new InvalidOperationException(
-                "Invalid license photo file.");
-
-        var directory =
-            GetDriversLicensePhotoDirectory(licenseId);
-
-        Directory.CreateDirectory(directory);
-
-        var relativePath = Path.Combine(
-            DriversLicensePhotoFolder,
-            licenseId.ToString(),
-            $"{fileName}{extension}"
-        );
-
-        var fullPath =
-            Path.Combine(StorageRoot, relativePath);
-
-        using var fs =
-            new FileStream(fullPath, FileMode.Create, FileAccess.Write);
-
-        photoStream.CopyTo(fs);
-
-        return relativePath;
-    }
-
-    /// <summary>
-    /// Resolves the file system directory for driver's license photo storage.
-    /// </summary>
-    private static string GetDriversLicensePhotoDirectory(int licenseId)
-    {
-        return Path.Combine(
-            StorageRoot,
-            DriversLicensePhotoFolder,
-            licenseId.ToString()
-        );
     }
 }
