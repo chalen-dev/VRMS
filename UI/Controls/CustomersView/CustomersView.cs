@@ -95,23 +95,31 @@ namespace VRMS.Controls
             {
                 HeaderText = "First Name",
                 DataPropertyName = "FirstName",
-                FillWeight = 35
+                FillWeight = 30
             });
 
             dgvCustomers.Columns.Add(new DataGridViewTextBoxColumn
             {
                 HeaderText = "Last Name",
                 DataPropertyName = "LastName",
-                FillWeight = 35
+                FillWeight = 30
+            });
+
+            dgvCustomers.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Type",
+                DataPropertyName = "CategoryDisplay",
+                FillWeight = 20
             });
 
             dgvCustomers.Columns.Add(new DataGridViewTextBoxColumn
             {
                 HeaderText = "Phone",
                 DataPropertyName = "Phone",
-                FillWeight = 30
+                FillWeight = 20
             });
         }
+
 
 
         private void TxtSearch_TextChanged(object? sender, EventArgs e)

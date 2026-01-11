@@ -14,10 +14,11 @@ public class Customer : Person
 
     public CustomerCategory Category { get; set; }
 
+    public string CategoryDisplay => Category.ToString();
+
     public bool IsFrequent { get; set; }
     public bool IsBlacklisted { get; set; }
 
     public string? PhotoPath { get; set; }
-
     public int DriversLicenseId { get; set; }
 }
