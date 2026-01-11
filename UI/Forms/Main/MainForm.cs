@@ -165,9 +165,25 @@ namespace VRMS.Forms
                     break;
 
                 case "btnAdmin":
-                    ShowPlaceholder("Admin Management");
-                    UpdateHeaderTitle("Admin", "System Management");
+                    
+                    if (Program.CurrentUserRole != "Admin")
+                    {
+                        MessageBox.Show(
+                            "You do not have permission to access this section.",
+                            "Access Denied",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning
+                        );
+                        return;
+                    }
+
+                    ShowView(
+                        new AdminView(),
+                        "Administration",
+                        "User & System Management"
+                    );
                     break;
+
             }
         }
 

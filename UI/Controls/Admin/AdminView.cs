@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using System.Drawing;
 
 namespace VRMS.Controls
 {
@@ -13,12 +14,10 @@ namespace VRMS.Controls
 
         private void SetupGrids()
         {
-            
-            dgvUsers.AlternatingRowsDefaultCellStyle.BackColor = System.Drawing.Color.FromArgb(245, 245, 245);
-            dgvLogs.AlternatingRowsDefaultCellStyle.BackColor = System.Drawing.Color.FromArgb(245, 245, 245);
+            dgvUsers.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245, 245, 245);
+            dgvLogs.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245, 245, 245);
         }
 
-        
         private void btnAddUser_Click(object sender, EventArgs e) { }
         private void btnEditUser_Click(object sender, EventArgs e) { }
         private void btnDeleteUser_Click(object sender, EventArgs e) { }
