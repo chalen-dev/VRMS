@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Windows.Forms;
-using VRMS.Models.Fleet;
 using VRMS.Enums;
+using VRMS.Models.Fleet;
 using VRMS.Services.Fleet;
+using VRMS.UI.Forms;
 
 namespace VRMS.Forms
 {
@@ -105,6 +106,13 @@ namespace VRMS.Forms
             numMileage.ValueChanged += ValidateFormState;
             cbStatus.SelectedIndexChanged += ValidateFormState;
         }
+        private void LoadCategories()
+        {
+            cbCategory.DataSource = null;
+            cbCategory.DataSource = _vehicleService.GetAllCategories();
+            cbCategory.DisplayMember = "Name";
+            cbCategory.ValueMember = "Id";
+        }
 
         // =========================
         // SAVE CHANGES
@@ -175,6 +183,16 @@ namespace VRMS.Forms
                 (VehicleStatus)cbStatus.SelectedItem! != _vehicle.Status;
 
             btnSave.Enabled = hasChanges;
+        }
+        private void BtnAddCategory_Click(object? sender, EventArgs e)
+        {
+            using var form = new AddCategoryForm(_vehicleService)
+            {
+                StartPosition = FormStartPosition.CenterParent
+            };
+
+            if (form.ShowDialog(this) == DialogResult.OK)
+                LoadCategories();
         }
     }
 }
