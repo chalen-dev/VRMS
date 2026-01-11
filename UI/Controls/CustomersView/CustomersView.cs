@@ -16,6 +16,8 @@ namespace VRMS.Controls
         private readonly DriversLicenseService _driversLicenseService;
         private readonly CustomerService _customerService;
 
+        private List<Customer> _allCustomers = new();
+
         private Customer? _selectedCustomer;
         private DriversLicense? _currentLicense;
 
@@ -52,28 +54,28 @@ namespace VRMS.Controls
             cbCustomerType.DropDownStyle = ComboBoxStyle.DropDownList;
         }
 
-        /// <summary>
-        /// NOTE:
-        /// Button clicks are wired in DESIGNER.
-        /// This method only wires non-designer-safe events.
-        /// </summary>
         private void HookEvents()
         {
             dgvCustomers.SelectionChanged += DgvCustomers_SelectionChanged;
-            dtpDOB.ValueChanged += (_, _) => UpdateAgeLabel();
+            txtSearch.TextChanged += TxtSearch_TextChanged;
 
+            dtpDOB.ValueChanged += (_, _) => UpdateAgeLabel();
             txtFirstName.TextChanged += (_, _) => UpdateSaveButtonState();
             txtLastName.TextChanged += (_, _) => UpdateSaveButtonState();
+
+            btnClear.Click += BtnClear_Click;
         }
 
         // =====================================================
-        // GRID
+        // GRID + SEARCH
         // =====================================================
 
         private void LoadCustomers()
         {
             dgvCustomers.AutoGenerateColumns = false;
-            dgvCustomers.DataSource = _customerService.GetAllCustomers();
+
+            _allCustomers = _customerService.GetAllCustomers();
+            dgvCustomers.DataSource = new List<Customer>(_allCustomers);
 
             if (dgvCustomers.Columns.Count == 0)
             {
@@ -100,13 +102,50 @@ namespace VRMS.Controls
             }
         }
 
+        private void TxtSearch_TextChanged(object? sender, EventArgs e)
+        {
+            var keyword = txtSearch.Text.Trim().ToLower();
+
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                dgvCustomers.DataSource = new List<Customer>(_allCustomers);
+                return;
+            }
+
+            var filtered = _allCustomers.FindAll(c =>
+                (!string.IsNullOrWhiteSpace(c.FirstName) &&
+                 c.FirstName.ToLower().Contains(keyword)) ||
+
+                (!string.IsNullOrWhiteSpace(c.LastName) &&
+                 c.LastName.ToLower().Contains(keyword)) ||
+
+                (!string.IsNullOrWhiteSpace(c.Phone) &&
+                 c.Phone.ToLower().Contains(keyword)) ||
+
+                (!string.IsNullOrWhiteSpace(c.Email) &&
+                 c.Email.ToLower().Contains(keyword))
+            );
+
+            dgvCustomers.DataSource = filtered;
+        }
+
+        private void ReselectCustomer(int customerId)
+        {
+            foreach (DataGridViewRow row in dgvCustomers.Rows)
+            {
+                if (row.DataBoundItem is Customer c && c.Id == customerId)
+                {
+                    row.Selected = true;
+                    dgvCustomers.CurrentCell = row.Cells[0];
+                    return;
+                }
+            }
+        }
+
         private void DgvCustomers_SelectionChanged(object? sender, EventArgs e)
         {
             if (dgvCustomers.SelectedRows.Count == 0)
-            {
-                ClearForm();
                 return;
-            }
 
             _selectedCustomer =
                 dgvCustomers.SelectedRows[0].DataBoundItem as Customer;
@@ -119,7 +158,7 @@ namespace VRMS.Controls
         }
 
         // =====================================================
-        // SAVE / DELETE
+        // SAVE / DELETE / CLEAR
         // =====================================================
 
         private void BtnSave_Click(object sender, EventArgs e)
@@ -129,13 +168,22 @@ namespace VRMS.Controls
 
             try
             {
+                int? updatedId = null;
+
                 if (_selectedCustomer == null)
                     CreateCustomer();
                 else
+                {
+                    updatedId = _selectedCustomer.Id;
                     UpdateCustomer();
+                }
 
                 LoadCustomers();
-                ClearForm();
+
+                if (updatedId.HasValue)
+                    ReselectCustomer(updatedId.Value);
+                else
+                    ClearForm();
             }
             catch (Exception ex)
             {
@@ -149,15 +197,18 @@ namespace VRMS.Controls
             if (_selectedCustomer == null)
                 return;
 
-            if (MessageBox.Show(
-                "Delete this customer?",
-                "Confirm",
-                MessageBoxButtons.YesNo,
+            if (MessageBox.Show("Delete this customer?",
+                "Confirm", MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning) != DialogResult.Yes)
                 return;
 
             _customerService.DeleteCustomer(_selectedCustomer.Id);
             LoadCustomers();
+            ClearForm();
+        }
+
+        private void BtnClear_Click(object sender, EventArgs e)
+        {
             ClearForm();
         }
 
@@ -173,8 +224,7 @@ namespace VRMS.Controls
                 dtpIssueDate.Value.Date,
                 dtpExpiryDate.Value.Date,
                 txtLicenseState.Text.Trim(),
-                null, null,
-                null, null
+                null, null, null, null
             );
 
             int customerId = _customerService.CreateCustomer(
@@ -201,10 +251,8 @@ namespace VRMS.Controls
                 dtpIssueDate.Value.Date,
                 dtpExpiryDate.Value.Date,
                 txtLicenseState.Text.Trim(),
-                _licenseFrontStream,
-                "front.jpg",
-                _licenseBackStream,
-                "back.jpg"
+                _licenseFrontStream, "front.jpg",
+                _licenseBackStream, "back.jpg"
             );
 
             _customerService.UpdateCustomer(
@@ -243,14 +291,17 @@ namespace VRMS.Controls
             _currentLicense =
                 _driversLicenseService.GetDriversLicenseById(c.DriversLicenseId);
 
-            txtLicenseNum.Text = _currentLicense.LicenseNumber;
-            dtpIssueDate.Value = _currentLicense.IssueDate;
-            dtpExpiryDate.Value = _currentLicense.ExpiryDate;
-            txtLicenseState.Text = _currentLicense.IssuingCountry;
+            if (_currentLicense != null)
+            {
+                txtLicenseNum.Text = _currentLicense.LicenseNumber;
+                dtpIssueDate.Value = _currentLicense.IssueDate;
+                dtpExpiryDate.Value = _currentLicense.ExpiryDate;
+                txtLicenseState.Text = _currentLicense.IssuingCountry;
+
+                LoadLicenseImages(_currentLicense);
+            }
 
             LoadProfilePhoto(c.PhotoPath);
-            LoadLicenseImages(_currentLicense);
-
             UpdateAgeLabel();
         }
 
@@ -269,25 +320,13 @@ namespace VRMS.Controls
             dtpIssueDate.Value = DateTime.Today;
             dtpExpiryDate.Value = DateTime.Today.AddYears(5);
 
-            picCustomerPhoto.Image?.Dispose();
             picCustomerPhoto.Image = null;
-
-            picLicenseFront.Image?.Dispose();
             picLicenseFront.Image = null;
-
-            picLicenseBack.Image?.Dispose();
             picLicenseBack.Image = null;
 
-            _profilePreviewImage?.Dispose();
             _profilePreviewImage = null;
-
-            _licenseFrontStream?.Dispose();
-            _licenseBackStream?.Dispose();
             _licenseFrontStream = null;
             _licenseBackStream = null;
-
-            lblAgeCheck.Text = "Age:";
-            lblAgeCheck.ForeColor = Color.DimGray;
 
             dgvCustomers.ClearSelection();
             btnEmergencyContacts.Enabled = false;
@@ -307,33 +346,29 @@ namespace VRMS.Controls
         }
 
         // =====================================================
-        // PROFILE PHOTO
+        // PHOTOS
         // =====================================================
-
-        private void BtnProfileCamera_Click(object sender, EventArgs e)
-        {
-            using var cameraForm = new CameraForm("Capture Profile Photo");
-
-            if (cameraForm.ShowDialog() == DialogResult.OK &&
-                cameraForm.HasCapturedImage)
-            {
-                _profilePreviewImage?.Dispose();
-                _profilePreviewImage = (Image)cameraForm.CapturedImage.Clone();
-                picCustomerPhoto.Image = _profilePreviewImage;
-            }
-        }
 
         private void BtnBrowseProfilePhoto_Click(object sender, EventArgs e)
         {
             using var dialog = new OpenFileDialog
             {
-                Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp"
+                Filter = "Image Files|*.jpg;*.png;*.jpeg"
             };
 
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-                _profilePreviewImage?.Dispose();
                 _profilePreviewImage = Image.FromFile(dialog.FileName);
+                picCustomerPhoto.Image = _profilePreviewImage;
+            }
+        }
+
+        private void BtnProfileCamera_Click(object sender, EventArgs e)
+        {
+            using var form = new CameraForm("Capture Profile Photo");
+            if (form.ShowDialog() == DialogResult.OK)
+            {
+                _profilePreviewImage = (Image)form.CapturedImage.Clone();
                 picCustomerPhoto.Image = _profilePreviewImage;
             }
         }
@@ -352,7 +387,6 @@ namespace VRMS.Controls
 
         private void LoadProfilePhoto(string relativePath)
         {
-            picCustomerPhoto.Image?.Dispose();
             picCustomerPhoto.Image = null;
 
             if (string.IsNullOrWhiteSpace(relativePath) ||
@@ -363,18 +397,10 @@ namespace VRMS.Controls
             if (!File.Exists(fullPath))
                 return;
 
-            try
-            {
-                using var fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
-                using var img = Image.FromStream(fs);
-                picCustomerPhoto.Image = new Bitmap(img);
-            }
-            catch
-            {
-                picCustomerPhoto.Image = null;
-            }
+            using var fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+            using var img = Image.FromStream(fs);
+            picCustomerPhoto.Image = new Bitmap(img);
         }
-
 
         // =====================================================
         // LICENSE IMAGES
@@ -388,53 +414,33 @@ namespace VRMS.Controls
 
         private void LoadImage(PictureBox pb, string relativePath)
         {
-            pb.Image?.Dispose();
             pb.Image = null;
 
-            // Guard: placeholder or empty path
             if (string.IsNullOrWhiteSpace(relativePath) ||
                 relativePath.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
-            {
                 return;
-            }
 
             var fullPath = Path.Combine("Storage", relativePath);
-
             if (!File.Exists(fullPath))
                 return;
 
-            try
-            {
-                using var fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
-                using var img = Image.FromStream(fs);
-                pb.Image = new Bitmap(img); // 🔥 CLONE, detach from stream
-            }
-            catch
-            {
-                // File exists but is not a valid image → ignore safely
-                pb.Image = null;
-            }
+            using var fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+            using var img = Image.FromStream(fs);
+            pb.Image = new Bitmap(img);
         }
 
         // =====================================================
-        // CAPTURE LICENSE (DESIGNER-WIRED)
+        // OTHER BUTTONS
         // =====================================================
 
         private void BtnCaptureLicense_Click(object sender, EventArgs e)
         {
             if (_selectedCustomer == null)
-            {
-                MessageBox.Show("Please save the customer first.");
                 return;
-            }
 
             using var form = new DriverLicenseCaptureForm();
-
             if (form.ShowDialog() != DialogResult.OK)
                 return;
-
-            _licenseFrontStream?.Dispose();
-            _licenseBackStream?.Dispose();
 
             _licenseFrontStream = form.GetFrontImageStream();
             _licenseBackStream = form.GetBackImageStream();
@@ -445,17 +451,35 @@ namespace VRMS.Controls
                 dtpIssueDate.Value.Date,
                 dtpExpiryDate.Value.Date,
                 txtLicenseState.Text.Trim(),
-                _licenseFrontStream,
-                "front.jpg",
-                _licenseBackStream,
-                "back.jpg"
+                _licenseFrontStream, "front.jpg",
+                _licenseBackStream, "back.jpg"
             );
 
-            _currentLicense = _driversLicenseService.GetDriversLicenseById(
-                _selectedCustomer.DriversLicenseId
-            );
+            _currentLicense =
+                _driversLicenseService.GetDriversLicenseById(
+                    _selectedCustomer.DriversLicenseId);
 
             LoadLicenseImages(_currentLicense);
+        }
+
+        private void BtnCheckDrivingRecord_Click(object sender, EventArgs e)
+        {
+            if (_selectedCustomer == null)
+                return;
+
+            using var dialog = new DrivingRecordVerificationDialog();
+            dialog.ShowDialog(this);
+        }
+
+        private void BtnEmergencyContacts_Click(object sender, EventArgs e)
+        {
+            if (_selectedCustomer == null)
+                return;
+
+            using var form = new EmergencyContactsForm(
+                _selectedCustomer.Id,
+                $"{_selectedCustomer.FirstName} {_selectedCustomer.LastName}");
+            form.ShowDialog();
         }
 
         // =====================================================
@@ -506,38 +530,6 @@ namespace VRMS.Controls
             int age = today.Year - dob.Year;
             if (dob > today.AddYears(-age)) age--;
             return age;
-        }
-
-        // =====================================================
-        // NAVIGATION
-        // =====================================================
-
-        private void BtnCheckDrivingRecord_Click(object sender, EventArgs e)
-        {
-            if (_selectedCustomer == null)
-            {
-                MessageBox.Show("Select a customer first.");
-                return;
-            }
-
-            using var dialog = new DrivingRecordVerificationDialog();
-            dialog.ShowDialog(this);
-        }
-
-        private void BtnEmergencyContacts_Click(object sender, EventArgs e)
-        {
-            if (_selectedCustomer == null)
-                return;
-
-            using var form = new EmergencyContactsForm(
-                _selectedCustomer.Id,
-                $"{_selectedCustomer.FirstName} {_selectedCustomer.LastName}");
-            form.ShowDialog();
-        }
-
-        private void BtnManageAccount_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("Account management coming later.");
         }
     }
 }
