@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 using VRMS.Forms;
 using VRMS.Models.Rentals;
@@ -64,8 +65,7 @@ namespace VRMS.Controls
             // =========================
             var driversLicenseService = new DriversLicenseService();
 
-            _customerService = new CustomerService(
-                driversLicenseService);
+            _customerService = new CustomerService(driversLicenseService);
 
             _vehicleService = new VehicleService(
                 vehicleRepo,
@@ -82,8 +82,7 @@ namespace VRMS.Controls
                 reservationRepo
             );
 
-            var rateService = new RateService(
-                rateConfigRepo);
+            var rateService = new RateService(rateConfigRepo);
 
             var billingService = new BillingService(
                 rentalRepo,
@@ -154,9 +153,38 @@ namespace VRMS.Controls
 
         private void LoadRentals()
         {
-            // TEMP until GetAllRentals() exists
             dgvRentals.DataSource = null;
+
+            // TEMP: until real data is wired
             dgvRentals.DataSource = Array.Empty<Rental>();
+
+            UpdateReturnButtonState();
+        }
+
+        // =========================
+        // BUTTON STATE LOGIC (FIX)
+        // =========================
+        private void UpdateReturnButtonState()
+        {
+            bool hasRows = dgvRentals.Rows.Count > 0;
+            bool hasSelection = dgvRentals.SelectedRows.Count > 0;
+
+            bool canReturn = hasRows && hasSelection;
+
+            btnReturn.Enabled = canReturn;
+
+            if (canReturn)
+            {
+                btnReturn.BackColor = Color.FromArgb(241, 196, 15); // yellow
+                btnReturn.ForeColor = Color.White;
+                btnReturn.Cursor = Cursors.Hand;
+            }
+            else
+            {
+                btnReturn.BackColor = Color.LightGray;
+                btnReturn.ForeColor = Color.DarkGray;
+                btnReturn.Cursor = Cursors.Default;
+            }
         }
 
         // =========================
@@ -164,13 +192,17 @@ namespace VRMS.Controls
         // =========================
         private void DgvRentals_SelectionChanged(object? sender, EventArgs e)
         {
-            bool hasSelection = dgvRentals.SelectedRows.Count > 0;
+            UpdateReturnButtonState();
 
-            btnReturn.Enabled = hasSelection;
-            btnViewDetails.Enabled = hasSelection;
-
-            if (!hasSelection)
+            if (dgvRentals.SelectedRows.Count == 0)
+            {
+                lblDetailVehicle.Text = "Vehicle Name";
+                lblDetailCustomer.Text = "Customer Name";
+                lblDetailDates.Text = "Period: Select entry";
+                lblDetailAmount.Text = "Total: ₱ 0.0";
+                pbVehicle.Image = null;
                 return;
+            }
 
             if (dgvRentals.SelectedRows[0].DataBoundItem is not Rental rental)
                 return;
@@ -200,6 +232,9 @@ namespace VRMS.Controls
 
         private void BtnReturn_Click(object sender, EventArgs e)
         {
+            if (!btnReturn.Enabled)
+                return;
+
             if (dgvRentals.SelectedRows.Count == 0)
                 return;
 

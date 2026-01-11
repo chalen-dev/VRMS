@@ -42,6 +42,9 @@ namespace VRMS.Controls.UserProfile
             btnChangePassword.Click += BtnChangePassword_Click;
             picProfile.Click += PicProfile_Click;
 
+            // ADDED: Subscribe to the edit photo button click
+            btnEditPhoto.Click += BtnEditPhoto_Click;
+
             // Text change validation
             txtFullName.TextChanged += ValidateFields;
             txtEmail.TextChanged += ValidateFields;
@@ -139,8 +142,20 @@ namespace VRMS.Controls.UserProfile
                     MessageBoxIcon.Error);
             }
         }
-        
+
         private void PicProfile_Click(object? sender, EventArgs e)
+        {
+            OpenProfilePictureDialog();
+        }
+
+        // ADDED: New method for handling edit photo button click
+        private void BtnEditPhoto_Click(object? sender, EventArgs e)
+        {
+            OpenProfilePictureDialog();
+        }
+
+        // ADDED: Extracted common logic for opening profile picture dialog
+        private void OpenProfilePictureDialog()
         {
             using var dialog = new OpenFileDialog
             {
@@ -174,8 +189,6 @@ namespace VRMS.Controls.UserProfile
                     MessageBoxIcon.Error);
             }
         }
-
-
 
         private bool ValidateForm()
         {
