@@ -34,6 +34,7 @@
             label1 = new Label();
             lblVehicleCount = new Label();
             panelToolbar = new Panel();
+            btnAddCategory = new Button();
             panelSearch = new Panel();
             txtSearch = new TextBox();
             btnFilter = new Button();
@@ -73,7 +74,6 @@
             panelPreviewHeader = new Panel();
             lblVehicleDetails = new Label();
             picVehiclePreview = new PictureBox();
-            button1 = new Button();
             panelHeader.SuspendLayout();
             panelToolbar.SuspendLayout();
             panelSearch.SuspendLayout();
@@ -128,7 +128,7 @@
             // panelToolbar
             // 
             panelToolbar.BackColor = Color.White;
-            panelToolbar.Controls.Add(button1);
+            panelToolbar.Controls.Add(btnAddCategory);
             panelToolbar.Controls.Add(panelSearch);
             panelToolbar.Controls.Add(btnFilter);
             panelToolbar.Controls.Add(btnExport);
@@ -141,6 +141,22 @@
             panelToolbar.Padding = new Padding(15, 10, 15, 10);
             panelToolbar.Size = new Size(1132, 60);
             panelToolbar.TabIndex = 1;
+            // 
+            // btnAddCategory
+            // 
+            btnAddCategory.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnAddCategory.BackColor = Color.FromArgb(128, 128, 255);
+            btnAddCategory.FlatAppearance.BorderSize = 0;
+            btnAddCategory.FlatStyle = FlatStyle.Flat;
+            btnAddCategory.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            btnAddCategory.ForeColor = Color.White;
+            btnAddCategory.Location = new Point(920, 10);
+            btnAddCategory.Name = "btnAddCategory";
+            btnAddCategory.Size = new Size(119, 40);
+            btnAddCategory.TabIndex = 7;
+            btnAddCategory.Text = "➕ Categories";
+            btnAddCategory.UseVisualStyleBackColor = false;
+            btnAddCategory.Click += btnAddCategory_Click;
             // 
             // panelSearch
             // 
@@ -675,21 +691,6 @@
             picVehiclePreview.TabIndex = 0;
             picVehiclePreview.TabStop = false;
             // 
-            // button1
-            // 
-            button1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            button1.BackColor = Color.FromArgb(128, 128, 255);
-            button1.FlatAppearance.BorderSize = 0;
-            button1.FlatStyle = FlatStyle.Flat;
-            button1.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            button1.ForeColor = Color.White;
-            button1.Location = new Point(920, 10);
-            button1.Name = "button1";
-            button1.Size = new Size(119, 40);
-            button1.TabIndex = 7;
-            button1.Text = "➕ Categories";
-            button1.UseVisualStyleBackColor = false;
-            // 
             // VehiclesView
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -768,6 +769,6 @@
         private Panel panelFeatures;
         private Label lblFeaturesTitle;
         private FlowLayoutPanel flowLayoutPanelFeatures;
-        private Button button1;
+        private Button btnAddCategory;
     }
 }
