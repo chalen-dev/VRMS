@@ -36,6 +36,7 @@ namespace VRMS.Controls
         private readonly VehicleService _vehicleService;
         private readonly ReservationService _reservationService;
         private readonly RentalService _rentalService;
+        private readonly RateService _rateService;
 
         private List<RentalGridRow> _allRows = new();
 
@@ -246,7 +247,8 @@ namespace VRMS.Controls
                 _customerService,
                 _vehicleService,
                 _reservationService,
-                _rentalService
+                _rentalService,
+                _rateService
             );
 
             if (form.ShowDialog(FindForm()) == DialogResult.OK)

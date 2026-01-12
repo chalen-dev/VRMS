@@ -1,6 +1,7 @@
 ﻿using VRMS.Enums;
 using VRMS.Forms.Payments;
 using VRMS.Models.Fleet;
+using VRMS.Services.Billing;
 using VRMS.Services.Customer;
 using VRMS.Services.Fleet;
 using VRMS.Services.Rental;
@@ -13,12 +14,14 @@ namespace VRMS.UI.Forms.Rentals
         private readonly VehicleService _vehicleService;
         private readonly ReservationService _reservationService;
         private readonly RentalService _rentalService;
+        private readonly RateService _rateService;
 
         public NewRentalForm(
             CustomerService customerService,
             VehicleService vehicleService,
             ReservationService reservationService,
-            RentalService rentalService)
+            RentalService rentalService,
+            RateService rateService) 
         {
             InitializeComponent();
 
@@ -26,8 +29,10 @@ namespace VRMS.UI.Forms.Rentals
             _vehicleService = vehicleService;
             _reservationService = reservationService;
             _rentalService = rentalService;
+            _rateService = rateService; // ADD
             
-            cbVehicle.SelectedIndexChanged += CbVehicle_SelectedIndexChanged;
+            dtPickup.ValueChanged += (_, __) => RecalculateTotal();         // ADD
+            dtReturn.ValueChanged += (_, __) => RecalculateTotal();         // ADD
 
             Load += NewRentalForm_Load;
             btnCancel.Click += (_, __) => Close();
@@ -41,6 +46,7 @@ namespace VRMS.UI.Forms.Rentals
             LoadCustomers();
             LoadVehicles();
             LoadFuelLevels();
+            RecalculateTotal(); 
         }
 
         private void LoadCustomers()
@@ -89,9 +95,50 @@ namespace VRMS.UI.Forms.Rentals
             cbFuel.SelectedValue = FuelLevel.Full;
         }
         
+        private decimal _lastCalculatedTotal = 0m;
+
+        private void RecalculateTotal()
+        {
+            if (cbVehicle.SelectedItem is not Vehicle vehicle)
+                return;
+
+            if (dtReturn.Value <= dtPickup.Value)
+            {
+                lblTotal.Text = "Total: ₱0.00";
+                _lastCalculatedTotal = 0m;
+                return;
+            }
+
+            // -------- BASE RENTAL (AUTHORITATIVE) --------
+            decimal baseRental =
+                _rateService.CalculateRentalCost(
+                    dtPickup.Value,
+                    dtReturn.Value,
+                    vehicle.VehicleCategoryId);
+
+            // -------- SECURITY DEPOSIT --------
+            var category =
+                _vehicleService.GetCategoryById(
+                    vehicle.VehicleCategoryId);
+
+            decimal securityDeposit =
+                category.SecurityDeposit;
+
+            // -------- TOTAL DUE TODAY --------
+            decimal totalDueToday =
+                baseRental + securityDeposit;
+
+            _lastCalculatedTotal = totalDueToday;
+
+            lblTotal.Text =
+                $"Total Due Today: ₱{totalDueToday:N2}";
+        }
+
+        
         private void CbVehicle_SelectedIndexChanged(object? sender, EventArgs e)
         {
             UpdateOdometerFromSelectedVehicle();
+            RecalculateTotal(); 
         }
 
         private void UpdateOdometerFromSelectedVehicle()
@@ -141,11 +188,7 @@ namespace VRMS.UI.Forms.Rentals
                 string vehicleName =
                     $"{vehicle.Make} {vehicle.Model} ({vehicle.LicensePlate})";
 
-                // TODO: Replace with RateService
-                decimal estimatedTotal = 0m;
-
-                lblTotal.Text =
-                    $"Total: ₱{estimatedTotal:N2}";
+                decimal estimatedTotal = _lastCalculatedTotal;
 
                 using var paymentForm =
                     new RentalDownPayment(
