@@ -28,6 +28,7 @@ namespace VRMS.Controls
 {
     public partial class RentalsView : UserControl
     {
+        
         // =========================
         // SERVICES
         // =========================
@@ -39,6 +40,8 @@ namespace VRMS.Controls
         private readonly RateService _rateService;
 
         private List<RentalGridRow> _allRows = new();
+        
+        private readonly ToolTip _toolTip = new ToolTip();
 
         private static readonly string PlaceholderImagePath =
             Path.Combine("Assets", "img_placeholder.png");
@@ -95,11 +98,13 @@ namespace VRMS.Controls
                 reservationRepo
             );
 
+            _rateService = new RateService(rateConfigRepo);
+
             var billingService = new BillingService(
                 rentalRepo,
                 _reservationService,
                 _vehicleService,
-                new RateService(rateConfigRepo),
+                _rateService,
                 invoiceRepo,
                 invoiceLineItemRepo,
                 paymentRepo,
@@ -132,6 +137,12 @@ namespace VRMS.Controls
             LoadRentals();
 
             txtSearch.TextChanged += (_, __) => ApplyFilters();
+            
+            // Tooltip configuration
+            _toolTip.InitialDelay = 500;
+            _toolTip.ReshowDelay = 100;
+            _toolTip.AutoPopDelay = 5000;
+            _toolTip.ShowAlways = true;
         }
 
         private void ConfigureGrid()
@@ -369,7 +380,7 @@ namespace VRMS.Controls
                 (row.Status == RentalStatus.Active || row.Status == RentalStatus.Late);
 
             btnViewDetails.Enabled = hasSelection;
-            btnReturn.Enabled = canReturn;
+            SetReturnButtonState(canReturn);
         }
 
         // =========================
@@ -394,6 +405,22 @@ namespace VRMS.Controls
                 RentalStatus.Cancelled => Color.DarkGray,
                 _ => e.CellStyle.ForeColor
             };
+        }
+        
+        private void SetReturnButtonState(bool enabled)
+        {
+            btnReturn.Enabled = enabled;
+
+            if (enabled)
+            {
+                btnReturn.BackColor = Color.FromArgb(255, 193, 7); // your yellow
+                btnReturn.ForeColor = Color.Black;
+            }
+            else
+            {
+                btnReturn.BackColor = Color.LightGray;
+                btnReturn.ForeColor = Color.DarkGray;
+            }
         }
     }
 }

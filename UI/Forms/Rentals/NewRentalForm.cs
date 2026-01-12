@@ -10,12 +10,15 @@ namespace VRMS.UI.Forms.Rentals
 {
     public partial class NewRentalForm : Form
     {
+        private bool _isLoaded = false;
+        private decimal _lastCalculatedTotal = 0m;
+        
         private readonly CustomerService _customerService;
         private readonly VehicleService _vehicleService;
         private readonly ReservationService _reservationService;
         private readonly RentalService _rentalService;
         private readonly RateService _rateService;
-
+        
         public NewRentalForm(
             CustomerService customerService,
             VehicleService vehicleService,
@@ -46,7 +49,10 @@ namespace VRMS.UI.Forms.Rentals
             LoadCustomers();
             LoadVehicles();
             LoadFuelLevels();
-            RecalculateTotal(); 
+
+            _isLoaded = true;   
+
+            RecalculateTotal();
         }
 
         private void LoadCustomers()
@@ -94,45 +100,45 @@ namespace VRMS.UI.Forms.Rentals
 
             cbFuel.SelectedValue = FuelLevel.Full;
         }
-        
-        private decimal _lastCalculatedTotal = 0m;
 
         private void RecalculateTotal()
         {
-            if (cbVehicle.SelectedItem is not Vehicle vehicle)
+            if (!_isLoaded)
                 return;
 
-            if (dtReturn.Value <= dtPickup.Value)
+            if (cbVehicle.SelectedItem is not Vehicle vehicle)
             {
-                lblTotal.Text = "Total: ₱0.00";
+                lblTotal.Text = "Total Due Today: ₱0.00";
                 _lastCalculatedTotal = 0m;
                 return;
             }
 
-            // -------- BASE RENTAL (AUTHORITATIVE) --------
+            if (dtReturn.Value <= dtPickup.Value)
+            {
+                lblTotal.Text = "Total Due Today: ₱0.00";
+                _lastCalculatedTotal = 0m;
+                return;
+            }
+
             decimal baseRental =
                 _rateService.CalculateRentalCost(
                     dtPickup.Value,
                     dtReturn.Value,
                     vehicle.VehicleCategoryId);
 
-            // -------- SECURITY DEPOSIT --------
             var category =
                 _vehicleService.GetCategoryById(
                     vehicle.VehicleCategoryId);
 
-            decimal securityDeposit =
-                category.SecurityDeposit;
-
-            // -------- TOTAL DUE TODAY --------
             decimal totalDueToday =
-                baseRental + securityDeposit;
+                baseRental + category.SecurityDeposit;
 
             _lastCalculatedTotal = totalDueToday;
 
             lblTotal.Text =
                 $"Total Due Today: ₱{totalDueToday:N2}";
         }
+
 
         
         private void CbVehicle_SelectedIndexChanged(object? sender, EventArgs e)
