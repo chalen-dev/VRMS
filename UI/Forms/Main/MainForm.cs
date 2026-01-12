@@ -9,6 +9,7 @@ using VRMS.Repositories.Accounts;
 using VRMS.Services.Account;
 using VRMS.UI.Forms;
 using VRMS.UI.Controls.CustomerVehicleCatalog;
+using VRMS.UI.Controls.Reports;
 
 namespace VRMS.Forms
 {

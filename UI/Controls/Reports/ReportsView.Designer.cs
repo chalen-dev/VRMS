@@ -1,4 +1,4 @@
-﻿namespace VRMS.Controls
+﻿namespace VRMS.UI.Controls.Reports
 {
     partial class ReportsView
     {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Windows.Forms;
-
-namespace VRMS.Controls
+﻿namespace VRMS.UI.Controls.Reports
 {
     public partial class ReportsView : UserControl
     {
