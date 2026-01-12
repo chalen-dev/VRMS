@@ -104,10 +104,12 @@
             pnlHeader.TabIndex = 0;
             // 
             // dateRangePicker
-            // 
+            //
             dateRangePicker.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             dateRangePicker.Font = new Font("Segoe UI", 9F);
-            dateRangePicker.Format = DateTimePickerFormat.Short;
+            dateRangePicker.Format = DateTimePickerFormat.Custom;
+            dateRangePicker.CustomFormat = "MMMM yyyy";
+            dateRangePicker.ShowUpDown = true;
             dateRangePicker.Location = new Point(789, 21);
             dateRangePicker.Name = "dateRangePicker";
             dateRangePicker.Size = new Size(141, 27);

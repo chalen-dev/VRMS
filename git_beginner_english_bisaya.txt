@@ -204,6 +204,9 @@ fetch -> merge -> push
 Kung gusto ipareha tanan:
 fetch -> reset --hard -> push --force
 
+Ug ma track tung mga unneeded files
+git rm -r --cached bin obj .vs .idea
+
 MASTER RULE:
 Master/Main = STABLE ONLY
 Use branches for work

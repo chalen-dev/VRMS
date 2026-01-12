@@ -3,78 +3,142 @@ using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using VRMS.Models.Dashboard;
+using VRMS.Repositories.Dashboard;
+using VRMS.Services.Dashboard;
 
 namespace VRMS.Controls
 {
-    public partial class DashboardView : System.Windows.Forms.UserControl
+    public partial class DashboardView : UserControl
     {
+        private readonly DashboardService _dashboardService;
         public DashboardView()
         {
             InitializeComponent();
+
+            // Manual wiring (same style as your other views)
+            var repo = new DashboardRepository();
+            _dashboardService = new DashboardService(repo);
+            
+            dateRangePicker.Value =
+                new DateTime(
+                    DateTime.Today.Year,
+                    DateTime.Today.Month,
+                    1
+                );
+
+            dateRangePicker.ValueChanged += (s, e) => LoadDashboard();
+
             this.Load += (s, e) => LoadDashboard();
             btnRefresh.Click += (s, e) => LoadDashboard();
         }
 
         private void LoadDashboard()
         {
-            // Update Cards
-            lblTotalValue.Text = "58";
-            lblAvailableValue.Text = "14";
-            lblRentedValue.Text = "32";
-            lblRevenueValue.Text = "₱245.8k";
-            lblOverdueValue.Text = "5";
-            lblMaintenanceValue.Text = "7";
+            int year = dateRangePicker.Value.Year;
+            int month = dateRangePicker.Value.Month;
+
+            DashboardSnapshot snapshot;
+
+            try
+            {
+                snapshot =
+                    _dashboardService.GetSnapshot(
+                        dateRangePicker.Value.Year,
+                        dateRangePicker.Value.Month
+                    );
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    ex.Message,
+                    "Dashboard Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+                return;
+            }
+
+            // -----------------------------
+            // FLEET CARDS
+            // -----------------------------
+
+            lblTotalValue.Text =
+                snapshot.Fleet.TotalVehicles.ToString();
+
+            lblAvailableValue.Text =
+                snapshot.Fleet.AvailableVehicles.ToString();
+
+            lblMaintenanceValue.Text =
+                snapshot.Fleet.UnderMaintenanceVehicles.ToString();
+
+            // -----------------------------
+            // RENTAL CARDS
+            // -----------------------------
+
+            lblRentedValue.Text =
+                snapshot.Rentals.ActiveRentals.ToString();
+
+            lblOverdueValue.Text =
+                snapshot.Rentals.OverdueRentals.ToString();
+
+            // -----------------------------
+            // REVENUE CARD
+            // -----------------------------
+
+            lblRevenueValue.Text =
+                $"₱{snapshot.Revenue.MonthlyRevenue:N0}";
+
+            // -----------------------------
+            // CHART
+            // -----------------------------
+
+            SetupPerformanceChart(snapshot.MonthlyTrends);
+
+            // -----------------------------
+            // GRIDS (STILL MOCKED FOR NOW)
+            // -----------------------------
 
             PopulateGrids();
-            SetupPerformanceChart();
         }
+
 
         private void PopulateGrids()
         {
-            // 1. Today's Schedule - Expanded
-            DataTable dtSchedule = new DataTable();
-            dtSchedule.Columns.Add("Type");
-            dtSchedule.Columns.Add("Vehicle");
-            dtSchedule.Columns.Add("Customer");
-            dtSchedule.Columns.Add("Status");
+            // =============================
+            // TODAY'S SCHEDULE (REAL DATA)
+            // =============================
 
-            dtSchedule.Rows.Add("🔑 Pickup", "Toyota Vios (GAS-123)", "John Doe", "Confirmed");
-            dtSchedule.Rows.Add("📩 Return", "Honda Civic (ABC-888)", "Jane Smith", "Pending");
-            dtSchedule.Rows.Add("🔑 Pickup", "Ford Ranger (WLD-4x4)", "Mike Ross", "Ready");
-            dtSchedule.Rows.Add("📩 Return", "Mitsubishi Mirage", "Sarah Lee", "In-Transit");
-            dtSchedule.Rows.Add("🔑 Pickup", "Suzuki Ertiga", "Robert Fox", "Processing");
-            dtSchedule.Rows.Add("📩 Return", "Hyundai Tucson", "Emma Wilson", "Delayed");
-            dtSchedule.Rows.Add("🔑 Pickup", "Nissan Almera", "Chris Pratt", "Confirmed");
+            dgvTodaySchedule.DataSource =
+                _dashboardService.GetTodaySchedule();
 
-            dgvTodaySchedule.DataSource = dtSchedule;
+            // =============================
+            // ALERTS (REAL DATA)
+            // =============================
 
-            // 2. Alerts - Expanded with Priority
-            DataTable dtAlerts = new DataTable();
-            dtAlerts.Columns.Add("Priority");
-            dtAlerts.Columns.Add("Issue Description");
-            dtAlerts.Columns.Add("Deadline");
+            dgvAlerts.DataSource =
+                _dashboardService.GetAlerts();
 
-            dtAlerts.Rows.Add("CRITICAL", "Overdue: Toyota Fortuner (VBN-456)", "3 Days Late");
-            dtAlerts.Rows.Add("HIGH", "Maintenance: Oil Change (Hyundai Accent)", "Today");
-            dtAlerts.Rows.Add("CRITICAL", "Overdue: Nissan NV350 (UVW-901)", "1 Day Late");
-            dtAlerts.Rows.Add("MEDIUM", "Insurance Expiring: Mitsubishi Xpander", "In 5 Days");
-            dtAlerts.Rows.Add("HIGH", "Brake Check Required: Ford Everest", "Tomorrow");
-            dtAlerts.Rows.Add("LOW", "Cleanliness Alert: Toyota Raize", "Routine");
-
-            dgvAlerts.DataSource = dtAlerts;
-
-            // Apply formatting to Alerts Grid
-            dgvAlerts.DataBindingComplete += (s, e) => {
+            // Priority coloring
+            dgvAlerts.DataBindingComplete += (s, e) =>
+            {
                 foreach (DataGridViewRow row in dgvAlerts.Rows)
                 {
-                    string priority = row.Cells["Priority"].Value?.ToString();
-                    if (priority == "CRITICAL") row.DefaultCellStyle.ForeColor = Color.Red;
-                    if (priority == "HIGH") row.DefaultCellStyle.ForeColor = Color.OrangeRed;
+                    string priority =
+                        row.Cells["priority"].Value?.ToString();
+
+                    if (priority == "CRITICAL")
+                        row.DefaultCellStyle.ForeColor = Color.Red;
+
+                    if (priority == "HIGH")
+                        row.DefaultCellStyle.ForeColor = Color.OrangeRed;
                 }
             };
         }
 
-        private void SetupPerformanceChart()
+
+        private void SetupPerformanceChart(
+            IReadOnlyList<DashboardMonthlyTrend> trends)
         {
             pnlChartArea.Controls.Clear();
             pnlChartArea.Controls.Add(lblChartTitle);
@@ -108,12 +172,19 @@ namespace VRMS.Controls
 
             // 3. Clear existing points before adding new ones
             s.Points.Clear();
-            for (int i = 0; i < months.Length; i++)
+
+            foreach (var item in trends)
             {
-                int pointIndex = s.Points.AddXY(months[i], data[i]);
-                // This ensures each bar is treated as a distinct data point
-                s.Points[pointIndex].AxisLabel = months[i];
+                var label =
+                    new DateTime(item.Year, item.Month, 1)
+                        .ToString("MMM");
+
+                int index =
+                    s.Points.AddXY(label, item.CompletedRentals);
+
+                s.Points[index].AxisLabel = label;
             }
+
 
             chart.Series.Add(s);
 
