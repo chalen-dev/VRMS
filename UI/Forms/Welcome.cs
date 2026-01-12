@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 using VRMS.Controls;
+using VRMS.Enums;
 using VRMS.Forms;
 using VRMS.Models.Accounts;
 using VRMS.Repositories.Accounts;
@@ -16,6 +17,7 @@ namespace VRMS.UI.Forms
         private UserControl? _currentControl;
         private readonly IAnimationManager _animationManager;
         private readonly UserService _userService;
+        private readonly CustomerAuthService _customerAuthService;
 
         public Welcome()
         {
@@ -27,6 +29,9 @@ namespace VRMS.UI.Forms
 
             var userRepo = new UserRepository();
             _userService = new UserService(userRepo);
+
+            var customerRepo = new CustomerAccountRepository();
+            _customerAuthService = new CustomerAuthService(customerRepo);
 
             _animationManager = new WelcomeFormAnimationManager(this);
             _animationManager.AnimationCompleted += (_, __) => FocusContent();
@@ -59,14 +64,19 @@ namespace VRMS.UI.Forms
             if (_animationManager.IsAnimating)
                 return;
 
-            LoadControl(new LoginUserControl(_userService));
+            LoadControl(
+                new LoginUserControl(
+                    _userService,
+                    _customerAuthService
+                )
+            );
 
-            // ✅ RESET POSITION BEFORE ANIMATION
             panelLogin.Visible = true;
             panelLogin.Left = -panelLogin.Width;
 
             _animationManager.StartSlideAnimation();
         }
+
 
         // =========================
         // CONTROL LOADER
@@ -88,17 +98,19 @@ namespace VRMS.UI.Forms
 
                 login.LoginSuccess += (_, __) =>
                 {
-                    if (login.LoggedInUser == null)
-                        return;
-
-                    HandleLoginSuccess(login.LoggedInUser);
+                    HandleLoginSuccess(login);
                 };
             }
             else if (control is RegisterUserControl register)
             {
                 register.GoBackToLoginRequest += (_, __) =>
                 {
-                    LoadControl(new LoginUserControl(_userService));
+                    LoadControl(
+                        new LoginUserControl(
+                            _userService,
+                            _customerAuthService
+                        )
+                    );
                 };
             }
 
@@ -111,22 +123,40 @@ namespace VRMS.UI.Forms
         // LOGIN SUCCESS
         // =========================
 
-        private void HandleLoginSuccess(User user)
+        private void HandleLoginSuccess(LoginUserControl login)
         {
-            // SESSION
-            Session.CurrentUser = user;
+            // INTERNAL USER
+            if (login.LoggedInUser != null)
+            {
+                var user = login.LoggedInUser;
 
-            // GLOBALS (THIS WAS MISSING)
-            Program.CurrentUserId = user.Id;
-            Program.CurrentUsername = user.Username;
-            Program.CurrentUserRole = user.Role.ToString();
+                Session.CurrentUser = user;
+                Program.CurrentUserId = user.Id;
+                Program.CurrentUsername = user.Username;
+                Program.CurrentUserRole = user.Role.ToString();
 
-            var mainForm = new MainForm();
-            mainForm.Show();
+                var mainForm = new MainForm();
+                mainForm.Show();
+                Hide();
 
-            Hide();
-            mainForm.FormClosed += (_, __) => Application.Exit();
+                mainForm.FormClosed += (_, __) => Application.Exit();
+                return;
+            }
+
+            // CUSTOMER
+            if (login.LoggedInCustomer != null)
+            {
+                Session.CurrentCustomer = login.LoggedInCustomer;
+
+                var customerForm = new CustomerMainForm();
+                customerForm.Show();
+                Hide();
+
+                customerForm.FormClosed += OnChildFormClosed;
+            }
         }
+
+
 
 
         // =========================
@@ -196,6 +226,10 @@ namespace VRMS.UI.Forms
                 components?.Dispose();
             }
             base.Dispose(disposing);
+        }
+        private void OnChildFormClosed(object sender, FormClosedEventArgs e)
+        {
+            Application.Exit();
         }
     }
 }

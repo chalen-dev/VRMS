@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using VRMS.Enums;
 using VRMS.Services.Account;
 using VRMS.Models.Accounts;
 
@@ -7,6 +8,9 @@ namespace VRMS.Controls
 {
     public partial class LoginUserControl : UserControl
     {
+        private readonly CustomerAuthService? _customerAuthService;
+
+        public CustomerAccount? LoggedInCustomer { get; private set; }
         public event EventHandler? GoToRegisterRequest;
         public event EventHandler? LoginSuccess;
         public event EventHandler? ExitApplication;
@@ -17,12 +21,18 @@ namespace VRMS.Controls
         // Store logged-in user
         public User? LoggedInUser { get; private set; }
 
-        public LoginUserControl(UserService userService)
+        public LoginUserControl(
+            UserService userService,
+            CustomerAuthService customerAuthService)
         {
             InitializeComponent();
             _userService = userService;
+            _customerAuthService = customerAuthService;
+
+            rbAgent.Checked = true; // default
             SetupEventHandlers();
         }
+
 
         private void SetupEventHandlers()
         {
@@ -63,57 +73,44 @@ namespace VRMS.Controls
             if (string.IsNullOrWhiteSpace(username) ||
                 string.IsNullOrWhiteSpace(password))
             {
-                MessageBox.Show(
-                    "Please enter both username and password.",
-                    "Validation",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
+                MessageBox.Show("Please enter both username and password.");
                 return;
             }
 
             try
             {
-                var user = _userService.Authenticate(username, password);
-
-                if (!user.IsActive)
+                if (rbAgent.Checked)
                 {
-                    MessageBox.Show(
-                        "This account is inactive.",
-                        "Access Denied",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning
-                    );
-                    return;
+                    // =========================
+                    // AGENT LOGIN
+                    // =========================
+                    var user = _userService.Authenticate(username, password);
+
+                    if (!user.IsActive)
+                        throw new InvalidOperationException("Account inactive.");
+
+                    LoggedInUser = user;
+                }
+                else
+                {
+                    // =========================
+                    // CUSTOMER LOGIN
+                    // =========================
+                    var customer =
+                        _customerAuthService.Authenticate(username, password);
+
+                    LoggedInCustomer = customer;
                 }
 
-                // ✅ Save user
-                LoggedInUser = user;
-
-                txtPassword.Clear();
-
-                // ✅ EventHandler signature is correct
                 LoginSuccess?.Invoke(this, EventArgs.Empty);
-            }
-            catch (InvalidOperationException ex)
-            {
-                MessageBox.Show(
-                    ex.Message,
-                    "Login Failed",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Login error: {ex.Message}",
-                    "Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
+                MessageBox.Show(ex.Message, "Login Failed");
             }
         }
+
+
 
         public void FocusUsername()
         {
