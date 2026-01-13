@@ -18,6 +18,7 @@ using VRMS.Services.Billing;
 using VRMS.Services.Customer;
 using VRMS.Services.Fleet;
 using VRMS.Services.Rental;
+using VRMS.UI.ApplicationService;
 using VRMS.UI.Forms.Customer;
 using VRMS.UI.Forms.Customers;
 using VRMS.UI.Services;

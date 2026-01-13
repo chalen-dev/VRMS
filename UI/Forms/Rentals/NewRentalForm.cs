@@ -5,6 +5,7 @@ using VRMS.Services.Billing;
 using VRMS.Services.Customer;
 using VRMS.Services.Fleet;
 using VRMS.Services.Rental;
+using VRMS.UI.Forms.Payments;
 using VRMS.UI.Forms.Select;
 
 namespace VRMS.UI.Forms.Rentals
@@ -203,6 +204,7 @@ namespace VRMS.UI.Forms.Rentals
         // -------------------------------
         // SAVE
         // -------------------------------
+        int rentalId = 0;
         private void btnSave_Click(object sender, EventArgs e)
         {
             try
@@ -224,7 +226,7 @@ namespace VRMS.UI.Forms.Rentals
                 
                 // ---------------- RENTAL (WALK-IN) ----------------
 
-                int rentalId =
+                rentalId =
                     _rentalService.StartWalkInRental(
                         _selectedCustomer.Id,
                         _selectedVehicle.Id,
@@ -265,7 +267,9 @@ namespace VRMS.UI.Forms.Rentals
                     new RentalDownPayment(
                         $"{_selectedCustomer.FirstName} {_selectedCustomer.LastName}",
                         $"{_selectedVehicle.Make} {_selectedVehicle.Model}",
-                        totalDue);
+                        baseRental,
+                        securityDeposit);
+
 
                 if (paymentForm.ShowDialog() != DialogResult.OK)
                     throw new InvalidOperationException("Payment was cancelled.");
@@ -279,6 +283,7 @@ namespace VRMS.UI.Forms.Rentals
                     invoice.Id,
                     paymentForm.PaidAmount,
                     paymentForm.SelectedPaymentMethod.Value,
+                    PaymentType.Deposit,
                     DateTime.UtcNow);
 
                 // ---------------- SUCCESS ----------------
@@ -294,12 +299,19 @@ namespace VRMS.UI.Forms.Rentals
             }
             catch (Exception ex)
             {
+                if (rentalId > 0 &&
+                    ex.Message == "Payment was cancelled.")
+                {
+                    _rentalService.CancelRental(rentalId);
+                }
+
                 MessageBox.Show(
                     ex.Message,
                     "Cannot Proceed",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
+
         }
 
 
