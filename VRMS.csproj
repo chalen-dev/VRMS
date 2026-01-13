@@ -41,10 +41,4 @@
         </Content>
     </ItemGroup>
 
-    <ItemGroup>
-      <Compile Update="UI\Forms\CustomerMainForm.cs">
-        <SubType>Form</SubType>
-      </Compile>
-    </ItemGroup>
-
 </Project>
