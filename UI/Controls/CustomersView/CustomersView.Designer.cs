@@ -102,7 +102,6 @@
             panel3 = new Panel();
             label14 = new Label();
             dgvRentalHistory = new DataGridView();
-            contextMenuStrip1 = new ContextMenuStrip(components);
             colId = new DataGridViewTextBoxColumn();
             colRentalNumber = new DataGridViewTextBoxColumn();
             colVehicle = new DataGridViewTextBoxColumn();
@@ -113,6 +112,7 @@
             colDays = new DataGridViewTextBoxColumn();
             colAmount = new DataGridViewTextBoxColumn();
             colActions = new DataGridViewButtonColumn();
+            contextMenuStrip1 = new ContextMenuStrip(components);
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -328,7 +328,7 @@
             tabControl1.Margin = new Padding(4, 5, 4, 5);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(915, 894);
+            tabControl1.Size = new Size(914, 894);
             tabControl1.TabIndex = 0;
             // 
             // tabPage1
@@ -357,7 +357,7 @@
             tabPage1.Margin = new Padding(3, 4, 3, 4);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new Padding(20);
-            tabPage1.Size = new Size(907, 858);
+            tabPage1.Size = new Size(906, 858);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Personal Information";
             // 
@@ -561,7 +561,7 @@
             tabPage2.Margin = new Padding(3, 4, 3, 4);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new Padding(20);
-            tabPage2.Size = new Size(907, 858);
+            tabPage2.Size = new Size(906, 858);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Driver's License";
             // 
@@ -775,7 +775,7 @@
             tabPage3.Margin = new Padding(3, 4, 3, 4);
             tabPage3.Name = "tabPage3";
             tabPage3.Padding = new Padding(20);
-            tabPage3.Size = new Size(907, 858);
+            tabPage3.Size = new Size(906, 858);
             tabPage3.TabIndex = 2;
             tabPage3.Text = "Classification & Overview";
             // 
@@ -924,7 +924,7 @@
             tabPage4.Margin = new Padding(3, 4, 3, 4);
             tabPage4.Name = "tabPage4";
             tabPage4.Padding = new Padding(20);
-            tabPage4.Size = new Size(907, 858);
+            tabPage4.Size = new Size(906, 858);
             tabPage4.TabIndex = 3;
             tabPage4.Text = "Rental History";
             // 
@@ -936,7 +936,7 @@
             panel3.Location = new Point(20, 20);
             panel3.Margin = new Padding(3, 4, 3, 4);
             panel3.Name = "panel3";
-            panel3.Size = new Size(867, 110);
+            panel3.Size = new Size(866, 110);
             panel3.TabIndex = 1;
             // 
             // label14
@@ -955,7 +955,6 @@
             dgvRentalHistory.AllowUserToAddRows = false;
             dgvRentalHistory.AllowUserToDeleteRows = false;
             dgvRentalHistory.AllowUserToResizeRows = false;
-            dgvRentalHistory.Dock = DockStyle.Fill;
             dgvRentalHistory.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvRentalHistory.BackgroundColor = Color.White;
             dgvRentalHistory.BorderStyle = BorderStyle.None;
@@ -979,8 +978,10 @@
             dataGridViewCellStyle12.SelectionForeColor = Color.FromArgb(30, 60, 90);
             dataGridViewCellStyle12.WrapMode = DataGridViewTriState.False;
             dgvRentalHistory.DefaultCellStyle = dataGridViewCellStyle12;
+            dgvRentalHistory.Dock = DockStyle.Fill;
             dgvRentalHistory.EnableHeadersVisualStyles = false;
             dgvRentalHistory.GridColor = Color.FromArgb(240, 240, 240);
+            dgvRentalHistory.Location = new Point(20, 20);
             dgvRentalHistory.Margin = new Padding(3, 4, 3, 4);
             dgvRentalHistory.MultiSelect = false;
             dgvRentalHistory.Name = "dgvRentalHistory";
@@ -989,13 +990,8 @@
             dgvRentalHistory.RowHeadersWidth = 51;
             dgvRentalHistory.RowTemplate.Height = 35;
             dgvRentalHistory.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvRentalHistory.Size = new Size(866, 818);
             dgvRentalHistory.TabIndex = 0;
-            // 
-            // contextMenuStrip1
-            // 
-            contextMenuStrip1.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(61, 4);
             // 
             // colId
             // 
@@ -1108,6 +1104,12 @@
             colActions.ReadOnly = true;
             colActions.Text = "View";
             colActions.UseColumnTextForButtonValue = true;
+            // 
+            // contextMenuStrip1
+            // 
+            contextMenuStrip1.ImageScalingSize = new Size(20, 20);
+            contextMenuStrip1.Name = "contextMenuStrip1";
+            contextMenuStrip1.Size = new Size(61, 4);
             // 
             // CustomersView
             // 

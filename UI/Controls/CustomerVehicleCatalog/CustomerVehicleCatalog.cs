@@ -1,9 +1,8 @@
-﻿// CustomerVehicleCatalog.cs  (replace entire file)
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using VRMS.Enums;
 using VRMS.Models.Customers;
@@ -16,16 +15,17 @@ namespace VRMS.UI.Controls.CustomerVehicleCatalog;
 public partial class CustomerVehicleCatalog : UserControl
 {
     // ===== UI COLORS =====
-    private readonly Color _successColor = Color.FromArgb(40, 167, 69);   // green
-    private readonly Color _dangerColor  = Color.FromArgb(220, 53, 69);   // red
-    private readonly Color _warningColor = Color.FromArgb(255, 193, 7);   // yellow
+    private readonly Color _successColor = Color.FromArgb(46, 204, 113);
+    private readonly Color _dangerColor = Color.FromArgb(231, 76, 60);
+    private readonly Color _warningColor = Color.FromArgb(241, 196, 15);
+    private readonly Color _primaryColor = Color.FromArgb(30, 60, 90);
 
     private readonly VehicleService _vehicleService;
     private readonly ReservationService _reservationService;
     private readonly Customer _customer;
 
-    private readonly List<VehicleListItem> _allVehicles = new List<VehicleListItem>();
-    private List<VehicleListItem> _filteredVehicles = new List<VehicleListItem>();
+    private readonly List<VehicleListItem> _allVehicles = new();
+    private List<VehicleListItem> _filteredVehicles = new();
     private VehicleListItem? _selected;
 
     public CustomerVehicleCatalog(
@@ -42,79 +42,48 @@ public partial class CustomerVehicleCatalog : UserControl
         LoadCategories();
         WireEvents();
 
-        // load vehicles and apply filters (so grid shows all by default)
         LoadVehicles();
         ApplyFilters();
-        ShowNoSelectionPreview();
     }
 
     private void InitializeComboBoxes()
     {
-        cbSort.Items.AddRange(new object[]
-        {
-            "Name (A–Z)",
-            "Name (Z–A)",
-            "Price (Low → High)",
-            "Price (High → Low)",
-            "Year (Newest)",
-            "Year (Oldest)"
-        });
+        // Sort already has items from designer, but ensuring index
+        cmbSort.SelectedIndex = 0;
 
-        cbStatus.Items.Clear();
-        cbStatus.Items.Add("All");
-
+        cmbStatus.Items.Clear();
+        cmbStatus.Items.Add("📋 All Status");
         foreach (VehicleStatus status in Enum.GetValues(typeof(VehicleStatus)))
         {
-            cbStatus.Items.Add(status);
+            cmbStatus.Items.Add(status.ToString());
         }
-
-        cbStatus.SelectedIndex = 0;
-
-        cbSort.SelectedIndex = 0;
-        cbStatus.SelectedIndex = 0;
+        cmbStatus.SelectedIndex = 0;
     }
-    
+
     private void LoadCategories()
     {
-        cbCategory.Items.Clear();
-        cbCategory.Items.Add("All");
+        cmbCategory.Items.Clear();
+        cmbCategory.Items.Add("🚗 All Categories");
 
         var categories = _vehicleService.GetAllCategories();
-
         foreach (var c in categories)
         {
-            cbCategory.Items.Add(c.Name);
+            cmbCategory.Items.Add(c.Name);
         }
-
-        if (cbCategory.Items.Count > 0)
-            cbCategory.SelectedIndex = 0;
+        cmbCategory.SelectedIndex = 0;
     }
 
     private void LoadVehicles()
     {
         _allVehicles.Clear();
-
-        // fetch categories and vehicles once
-        var categories = _vehicleService.GetAllCategories()
-            .ToDictionary(c => c.Id);
-
+        var categories = _vehicleService.GetAllCategories().ToDictionary(c => c.Id);
         var vehicles = _vehicleService.GetAllVehicles();
 
         foreach (var v in vehicles)
         {
-            // defensive: if category missing, use placeholder name
             var categoryName = categories.TryGetValue(v.VehicleCategoryId, out var cat) ? cat.Name : "Unknown";
-
             decimal dailyRate = 0m;
-            try
-            {
-                // repository call - keep as-is (you can replace with _vehicleService method later)
-                dailyRate = new RateConfigurationRepository().GetByCategory(v.VehicleCategoryId).DailyRate;
-            }
-            catch
-            {
-                dailyRate = 0m;
-            }
+            try { dailyRate = new RateConfigurationRepository().GetByCategory(v.VehicleCategoryId).DailyRate; } catch { }
 
             _allVehicles.Add(new VehicleListItem
             {
@@ -128,325 +97,164 @@ public partial class CustomerVehicleCatalog : UserControl
             });
         }
     }
-    
-    private void LoadVehicleImage(int vehicleId)
-    {
-        picVehicle.Image = null;
-
-        var images = _vehicleService.GetVehicleImages(vehicleId);
-        if (images.Count == 0)
-        {
-            ShowPlaceholderImage();
-            return;
-        }
-
-        // For now: display the FIRST image
-        var image = images[0];
-
-        var fullPath = Path.Combine(
-            AppContext.BaseDirectory,
-            "Storage",
-            image.ImagePath);
-
-        if (!File.Exists(fullPath))
-            return;
-
-        // Important: avoid file lock
-        using var fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
-        using var temp = Image.FromStream(fs);
-        picVehicle.Image = new Bitmap(temp);
-    }
-
-
 
     private void WireEvents()
     {
-        txtSearch.TextChanged += (sender, e) => ApplyFilters();
-        cbStatus.SelectedIndexChanged += (sender, e) => ApplyFilters();
-        cbCategory.SelectedIndexChanged += (sender, e) => ApplyFilters();
-        cbSort.SelectedIndexChanged += (sender, e) => ApplyFilters();
-        chkAvailableOnly.CheckedChanged += (sender, e) => ApplyFilters();
+        txtSearch.TextChanged += (s, e) => ApplyFilters();
+        cmbStatus.SelectedIndexChanged += (s, e) => ApplyFilters();
+        cmbCategory.SelectedIndexChanged += (s, e) => ApplyFilters();
+        cmbSort.SelectedIndexChanged += (s, e) => ApplyFilters();
+        chkAvailableOnly.CheckedChanged += (s, e) => ApplyFilters();
 
-        lvVehicles.SelectedIndexChanged += OnVehicleSelected;
-
-        btnRefresh.Click += OnRefreshClick!;
-        btnClearFilters.Click += OnClearFiltersClick!;
-        btnRent.Click += OnRentClick!;
+        dgvVehicles.SelectionChanged += OnVehicleSelected;
+        btnClearFilters.Click += OnClearFiltersClick;
+        btnRent.Click += OnRentClick;
+        btnRentNow.Click += OnRentClick;
 
         AttachHoverEffects();
     }
 
-    private void AttachHoverEffects()
-    {
-        Control[] interactiveControls = new Control[] { btnRefresh, btnClearFilters, btnRent };
-
-        foreach (var control in interactiveControls.OfType<Button>())
-        {
-            control.MouseEnter += (sender, e) =>
-            {
-                if (control.Enabled)
-                    control.BackColor = ControlPaint.Light(control.BackColor, 0.1f);
-            };
-
-            control.MouseLeave += (sender, e) =>
-            {
-                if (control == btnRent && _selected?.Status == VehicleStatus.Available)
-                    control.BackColor = _successColor;
-                else
-                    control.BackColor = GetDefaultButtonColor(control);
-            };
-        }
-    }
-
-    private Color GetDefaultButtonColor(Control btn)
-    {
-        if (btn == btnRent)
-            return _selected?.Status == VehicleStatus.Available ? _successColor : Color.FromArgb(108, 117, 125);
-        return Color.Transparent;
-    }
-    
-    private void ShowPlaceholderImage()
-    {
-        var path = Path.Combine(
-            AppContext.BaseDirectory,
-            "Assets",
-            "img_placeholder.png");
-
-        if (!File.Exists(path))
-        {
-            picVehicle.Image = null;
-            return;
-        }
-
-        using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
-        using var temp = Image.FromStream(fs);
-        picVehicle.Image = new Bitmap(temp);
-    }
-
-    // --------------------
-    // FILTERING + RENDER
-    // --------------------
     private void ApplyFilters()
     {
         IEnumerable<VehicleListItem> result = _allVehicles;
 
-        // search
-        var q = (txtSearch?.Text ?? string.Empty).Trim();
+        // Search logic
+        var q = txtSearch.Text.Trim();
         if (!string.IsNullOrEmpty(q))
-            result = result.Where(v => v.Name.Contains(q, StringComparison.OrdinalIgnoreCase)
-                                     || v.Plate.Contains(q, StringComparison.OrdinalIgnoreCase)
-                                     || v.Category.Contains(q, StringComparison.OrdinalIgnoreCase));
+            result = result.Where(v => v.Name.Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                                     v.Plate.Contains(q, StringComparison.OrdinalIgnoreCase));
 
-        // status
-        if (cbStatus.SelectedItem != null && cbStatus.SelectedItem.ToString() != "All")
+        // Status logic
+        if (cmbStatus.SelectedIndex > 0)
         {
-            var statusText = cbStatus.SelectedItem.ToString();
-            if (Enum.TryParse<VehicleStatus>(statusText, out var stat))
-                result = result.Where(v => v.Status == stat);
-            else
-                result = result.Where(v => v.Status.ToString().Equals(statusText, StringComparison.OrdinalIgnoreCase));
+            var selectedStatus = cmbStatus.SelectedItem.ToString();
+            result = result.Where(v => v.Status.ToString() == selectedStatus);
         }
 
-        // category
-        if (cbCategory.SelectedItem != null && cbCategory.SelectedItem.ToString() != "All")
+        // Category logic
+        if (cmbCategory.SelectedIndex > 0)
         {
-            var cat = cbCategory.SelectedItem.ToString();
-            result = result.Where(v => v.Category.Equals(cat, StringComparison.OrdinalIgnoreCase));
+            var cat = cmbCategory.SelectedItem.ToString();
+            result = result.Where(v => v.Category == cat);
         }
 
-        // available only checkbox
         if (chkAvailableOnly.Checked)
             result = result.Where(v => v.Status == VehicleStatus.Available);
 
-        // sort
-        var sort = cbSort.SelectedItem?.ToString() ?? "Name (A–Z)";
-        result = sort switch
+        // Sort logic
+        result = cmbSort.SelectedIndex switch
         {
-            "Name (A–Z)" => result.OrderBy(v => v.Name),
-            "Name (Z–A)" => result.OrderByDescending(v => v.Name),
-            "Price (Low → High)" => result.OrderBy(v => v.DailyRate),
-            "Price (High → Low)" => result.OrderByDescending(v => v.DailyRate),
-            "Year (Newest)" => result.OrderByDescending(v => v.Year),
-            "Year (Oldest)" => result.OrderBy(v => v.Year),
-            _ => result.OrderBy(v => v.Name)
+            0 => result.OrderBy(v => v.Name),
+            1 => result.OrderByDescending(v => v.Name),
+            2 => result.OrderBy(v => v.DailyRate),
+            3 => result.OrderByDescending(v => v.DailyRate),
+            4 => result.OrderByDescending(v => v.Year),
+            5 => result.OrderBy(v => v.Year),
+            _ => result
         };
 
         _filteredVehicles = result.ToList();
-        RenderVehicleList(_filteredVehicles);
-        UpdateStatusLabel();
+        dgvVehicles.DataSource = null;
+        dgvVehicles.DataSource = _filteredVehicles;
+        UpdateHeaderInfo();
     }
 
-    private void RenderVehicleList(IEnumerable<VehicleListItem> list)
+    private void OnVehicleSelected(object sender, EventArgs e)
     {
-        lvVehicles.BeginUpdate();
-        lvVehicles.Items.Clear();
-
-        foreach (var v in list)
+        if (dgvVehicles.SelectedRows.Count == 0)
         {
-            var item = new ListViewItem(v.Name)
-            {
-                Tag = v,
-                ForeColor = GetStatusColor(v.Status)
-            };
-
-            item.SubItems.Add(v.Category);
-            item.SubItems.Add(v.Status.ToString());
-            item.SubItems.Add($"₱{v.DailyRate:N0}/day");
-            item.SubItems.Add(v.Plate);
-
-            lvVehicles.Items.Add(item);
+            panelVehicleDetails.Visible = false;
+            panelNoSelection.Visible = true;
+            _selected = null;
+            return;
         }
 
-        lvVehicles.EndUpdate();
+        _selected = dgvVehicles.SelectedRows[0].DataBoundItem as VehicleListItem;
+        if (_selected == null) return;
+
+        panelNoSelection.Visible = false;
+        panelVehicleDetails.Visible = true;
+
+        lblMakeModel.Text = _selected.Name;
+        lblCategoryValue.Text = _selected.Category;
+        lblRateValue.Text = $"₱{_selected.DailyRate:N0}/day";
+        lblPlateValue.Text = _selected.Plate;
+        lblYearValue.Text = _selected.Year.ToString();
+        lblStatusValue.Text = _selected.Status.ToString();
+        lblStatusValue.ForeColor = GetStatusColor(_selected.Status);
+
+        btnRentNow.Enabled = _selected.Status == VehicleStatus.Available;
+        btnRent.Enabled = btnRentNow.Enabled;
+
+        LoadVehicleImage(_selected.VehicleId);
     }
 
-    private void UpdateStatusLabel()
+    private void LoadVehicleImage(int vehicleId)
     {
-        int total = _allVehicles.Count;
-        int filtered = _filteredVehicles.Count;
-        int available = _allVehicles.Count(v => v.Status == VehicleStatus.Available);
+        picVehicle.Image = null;
+        var images = _vehicleService.GetVehicleImages(vehicleId);
 
-        lblTitle.Text = $"🚗 Vehicle Catalog ({filtered}/{total} vehicles)";
+        string path = images.Count > 0
+            ? Path.Combine(AppContext.BaseDirectory, "Storage", images[0].ImagePath)
+            : Path.Combine(AppContext.BaseDirectory, "Assets", "img_placeholder.png");
 
-        var toolTip = new ToolTip
+        if (File.Exists(path))
         {
-            IsBalloon = true,
-            ToolTipIcon = ToolTipIcon.Info
-        };
-        toolTip.SetToolTip(lblTitle, $"{available} vehicles currently available");
+            using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
+            picVehicle.Image = new Bitmap(Image.FromStream(fs));
+        }
     }
 
-    // --------------------
-    // UI actions
-    // --------------------
-    private void OnRefreshClick(object sender, EventArgs e)
+    private void OnRentClick(object sender, EventArgs e)
     {
-        LoadVehicles();
-        ApplyFilters();
-        ShowNoSelectionPreview();
-        ShowNotification("Vehicle list refreshed!", ToolTipIcon.Info);
+        if (_selected == null || _selected.Status != VehicleStatus.Available) return;
+
+        try
+        {
+            _reservationService.CreateReservation(_customer.Id, _selected.VehicleId, DateTime.Today, DateTime.Today.AddDays(1));
+            MessageBox.Show("Reservation submitted!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            LoadVehicles();
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 
     private void OnClearFiltersClick(object sender, EventArgs e)
     {
         txtSearch.Clear();
-        cbStatus.SelectedIndex = 0;
-        cbCategory.SelectedIndex = 0;
-        cbSort.SelectedIndex = 0;
+        cmbStatus.SelectedIndex = 0;
+        cmbCategory.SelectedIndex = 0;
+        cmbSort.SelectedIndex = 0;
         chkAvailableOnly.Checked = false;
-
         ApplyFilters();
     }
 
-    private void OnRentClick(object sender, EventArgs e)
+    private void UpdateHeaderInfo()
     {
-        if (_selected == null)
-        {
-            ShowNotification("Please select a vehicle.", ToolTipIcon.Warning);
-            return;
-        }
-
-        if (_selected.Status != VehicleStatus.Available)
-        {
-            ShowNotification("Vehicle is not available.", ToolTipIcon.Warning);
-            return;
-        }
-
-        // Simple default date-range: today to tomorrow.
-        var startDate = DateTime.Today;
-        var endDate = DateTime.Today.AddDays(1);
-
-        try
-        {
-            int reservationId =
-                _reservationService.CreateReservation(
-                    _customer.Id,
-                    _selected.VehicleId,
-                    startDate,
-                    endDate);
-
-            ShowNotification(
-                "Reservation submitted. Awaiting confirmation.",
-                ToolTipIcon.Info);
-
-            LoadVehicles(); // refresh statuses
-            ApplyFilters();
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(
-                ex.Message,
-                "Reservation Failed",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error);
-        }
+        lblVehicleCount.Text = $"Total: {_filteredVehicles.Count} vehicles";
     }
 
-    private void OnVehicleSelected(object sender, EventArgs e)
+    private Color GetStatusColor(VehicleStatus status) => status switch
     {
-        if (lvVehicles.SelectedItems.Count == 0)
+        VehicleStatus.Available => _successColor,
+        VehicleStatus.Rented => _dangerColor,
+        VehicleStatus.UnderMaintenance => _warningColor,
+        _ => Color.Gray
+    };
+
+    private void AttachHoverEffects()
+    {
+        foreach (var btn in new[] { btnRent, btnRentNow, btnClearFilters })
         {
-            ShowNoSelectionPreview();
-            return;
+            btn.MouseEnter += (s, e) => { if (btn.Enabled) btn.BackColor = Color.FromArgb(40, btn.BackColor); };
+            btn.MouseLeave += (s, e) => { btn.BackColor = (btn == btnClearFilters) ? Color.White : _successColor; };
         }
-
-        _selected = lvVehicles.SelectedItems[0].Tag as VehicleListItem;
-
-        if (_selected == null)
-            return;
-        
-        LoadVehicleImage(_selected.VehicleId);
-
-        panelNoSelection.Visible = false;
-        panelPreviewContent.Visible = true;
-
-        lblName.Text = _selected.Name;
-        lblCategoryValue.Text = _selected.Category;
-        lblRateValue.Text = $"₱{_selected.DailyRate:N0} / day";
-        lblPlateValue.Text = _selected.Plate;
-        lblYearValue.Text = _selected.Year.ToString();
-
-        lblStatusValue.Text = _selected.Status.ToString();
-        lblStatusValue.ForeColor = GetStatusColor(_selected.Status);
-
-        btnRent.Enabled = _selected.Status == VehicleStatus.Available;
-        btnRent.BackColor = btnRent.Enabled ? _successColor : Color.FromArgb(108, 117, 125);
-    }
-
-    private Color GetStatusColor(VehicleStatus status)
-    {
-        return status switch
-        {
-            VehicleStatus.Available => _successColor,
-            VehicleStatus.Rented => _dangerColor,
-            VehicleStatus.UnderMaintenance => _warningColor,
-            _ => Color.Gray
-        };
-    }
-
-    private void ShowNoSelectionPreview()
-    {
-        panelPreviewContent.Visible = false;
-        panelNoSelection.Visible = true;
-        _selected = null;
-    }
-
-    private void ShowNotification(string message, ToolTipIcon icon)
-    {
-        var notification = new ToolTip
-        {
-            ToolTipTitle = "Notification",
-            ToolTipIcon = icon,
-            IsBalloon = true,
-            InitialDelay = 0,
-            ShowAlways = true
-        };
-
-        notification.Show(message, this, 100, 100, 3000);
     }
 }
 
-// small DTO for list display (keeps view-layer separate from domain models)
 internal sealed class VehicleListItem
 {
     public int VehicleId { get; init; }
