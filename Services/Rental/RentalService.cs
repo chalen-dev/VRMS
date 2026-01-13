@@ -1,4 +1,6 @@
 ﻿using VRMS.Enums;
+using VRMS.Repositories.Damages;
+using VRMS.Repositories.Inspections;
 using VRMS.Repositories.Rentals;
 using VRMS.Services.Billing;
 using VRMS.Services.Fleet;
@@ -36,6 +38,10 @@ public class RentalService
     /// Billing service responsible for final invoice calculation.
     /// </summary>
     private readonly BillingService _billingService;
+    
+    private readonly VehicleInspectionRepository _inspectionRepo;
+    private readonly DamageRepository _damageRepo;
+    private readonly DamageReportRepository _damageReportRepo;
 
     /// <summary>
     /// Initializes the rental service with required dependencies.
@@ -44,13 +50,21 @@ public class RentalService
         ReservationService reservationService,
         VehicleService vehicleService,
         RentalRepository rentalRepo,
-        BillingService billingService)
+        BillingService billingService,
+        VehicleInspectionRepository inspectionRepo,
+        DamageRepository damageRepo,
+        DamageReportRepository damageReportRepo)
     {
         _reservationService = reservationService;
         _vehicleService = vehicleService;
         _rentalRepo = rentalRepo;
         _billingService = billingService;
+
+        _inspectionRepo = inspectionRepo;
+        _damageRepo = damageRepo;
+        _damageReportRepo = damageReportRepo;
     }
+
 
     // -------------------------------------------------
     // START RENTAL (PICKUP)
