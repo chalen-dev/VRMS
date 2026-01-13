@@ -34,10 +34,10 @@
             btnRefresh = new Button();
             dgvRentals = new DataGridView();
             splitContainer1 = new SplitContainer();
-            pbVehicle = new PictureBox();
-            lblDetailVehicle = new Label();
-            lblDetailDates = new Label();
             lblDetailAmount = new Label();
+            lblDetailDates = new Label();
+            lblDetailVehicle = new Label();
+            pbVehicle = new PictureBox();
             btnProceedRent = new Button();
             btnViewDetails = new Button();
             txtSearch = new TextBox();
@@ -60,7 +60,7 @@
             lblTitle.Location = new Point(16, 20);
             lblTitle.Margin = new Padding(5, 0, 5, 0);
             lblTitle.Name = "lblTitle";
-            lblTitle.Size = new Size(200, 50);
+            lblTitle.Size = new Size(213, 50);
             lblTitle.TabIndex = 0;
             lblTitle.Text = "My Rentals";
             // 
@@ -145,30 +145,17 @@
             splitContainer1.SplitterWidth = 17;
             splitContainer1.TabIndex = 4;
             // 
-            // pbVehicle
+            // lblDetailAmount
             // 
-            pbVehicle.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            pbVehicle.BackColor = Color.WhiteSmoke;
-            pbVehicle.BorderStyle = BorderStyle.FixedSingle;
-            pbVehicle.Location = new Point(18, 21);
-            pbVehicle.Margin = new Padding(5);
-            pbVehicle.Name = "pbVehicle";
-            pbVehicle.Size = new Size(395, 287);
-            pbVehicle.SizeMode = PictureBoxSizeMode.Zoom;
-            pbVehicle.TabIndex = 0;
-            pbVehicle.TabStop = false;
-            // 
-            // lblDetailVehicle
-            // 
-            lblDetailVehicle.AutoSize = true;
-            lblDetailVehicle.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
-            lblDetailVehicle.ForeColor = Color.FromArgb(41, 128, 185);
-            lblDetailVehicle.Location = new Point(24, 325);
-            lblDetailVehicle.Margin = new Padding(5, 0, 5, 0);
-            lblDetailVehicle.Name = "lblDetailVehicle";
-            lblDetailVehicle.Size = new Size(168, 32);
-            lblDetailVehicle.TabIndex = 1;
-            lblDetailVehicle.Text = "Vehicle Name";
+            lblDetailAmount.AutoSize = true;
+            lblDetailAmount.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            lblDetailAmount.ForeColor = Color.FromArgb(46, 204, 113);
+            lblDetailAmount.Location = new Point(27, 425);
+            lblDetailAmount.Margin = new Padding(5, 0, 5, 0);
+            lblDetailAmount.Name = "lblDetailAmount";
+            lblDetailAmount.Size = new Size(109, 25);
+            lblDetailAmount.TabIndex = 4;
+            lblDetailAmount.Text = "Total: ₱ 0.0";
             // 
             // lblDetailDates
             // 
@@ -182,17 +169,30 @@
             lblDetailDates.TabIndex = 3;
             lblDetailDates.Text = "Period: Select entry";
             // 
-            // lblDetailAmount
+            // lblDetailVehicle
             // 
-            lblDetailAmount.AutoSize = true;
-            lblDetailAmount.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
-            lblDetailAmount.ForeColor = Color.FromArgb(46, 204, 113);
-            lblDetailAmount.Location = new Point(27, 425);
-            lblDetailAmount.Margin = new Padding(5, 0, 5, 0);
-            lblDetailAmount.Name = "lblDetailAmount";
-            lblDetailAmount.Size = new Size(109, 25);
-            lblDetailAmount.TabIndex = 4;
-            lblDetailAmount.Text = "Total: ₱ 0.0";
+            lblDetailVehicle.AutoSize = true;
+            lblDetailVehicle.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
+            lblDetailVehicle.ForeColor = Color.FromArgb(41, 128, 185);
+            lblDetailVehicle.Location = new Point(24, 325);
+            lblDetailVehicle.Margin = new Padding(5, 0, 5, 0);
+            lblDetailVehicle.Name = "lblDetailVehicle";
+            lblDetailVehicle.Size = new Size(168, 32);
+            lblDetailVehicle.TabIndex = 1;
+            lblDetailVehicle.Text = "Vehicle Name";
+            // 
+            // pbVehicle
+            // 
+            pbVehicle.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            pbVehicle.BackColor = Color.WhiteSmoke;
+            pbVehicle.BorderStyle = BorderStyle.FixedSingle;
+            pbVehicle.Location = new Point(18, 21);
+            pbVehicle.Margin = new Padding(5);
+            pbVehicle.Name = "pbVehicle";
+            pbVehicle.Size = new Size(382, 287);
+            pbVehicle.SizeMode = PictureBoxSizeMode.Zoom;
+            pbVehicle.TabIndex = 0;
+            pbVehicle.TabStop = false;
             // 
             // btnProceedRent
             // 
@@ -205,10 +205,11 @@
             btnProceedRent.Location = new Point(18, 680);
             btnProceedRent.Margin = new Padding(5);
             btnProceedRent.Name = "btnProceedRent";
-            btnProceedRent.Size = new Size(395, 48);
+            btnProceedRent.Size = new Size(382, 48);
             btnProceedRent.TabIndex = 5;
             btnProceedRent.Text = "🚗 Proceed Rent";
             btnProceedRent.UseVisualStyleBackColor = false;
+           
             // 
             // btnViewDetails
             // 

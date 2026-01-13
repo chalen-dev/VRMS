@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
 using VRMS.Models.Accounts;
-using VRMS.Models.Customers;
 using VRMS.Services.Customer;
 using VRMS.Services.Account;
 using VRMS.Repositories.Accounts;
@@ -12,6 +11,7 @@ using VRMS.Repositories.Fleet;
 using VRMS.Repositories.Rentals;
 using VRMS.Services.Fleet;
 using VRMS.Services.Rental;
+using VRMS.UI.Forms.Rentals;
 
 namespace VRMS.UI.Forms.Main
 {
@@ -20,6 +20,7 @@ namespace VRMS.UI.Forms.Main
         private readonly CustomerAccount _account;
         private readonly CustomerService _customerService;
 
+        // ✅ FULLY QUALIFIED TYPE (FIXES ERRORS)
         private VRMS.Models.Customers.Customer? _customer;
         private UserControl? _currentView;
 
@@ -45,11 +46,13 @@ namespace VRMS.UI.Forms.Main
 
         private void InitializeCustomer()
         {
-            _customer =
+            VRMS.Models.Customers.Customer customer =
                 _customerService.GetCustomerById(_account.CustomerId);
 
+            _customer = customer;
+
             lblWelcome.Text =
-                $"Welcome,\n{_customer.FirstName} {_customer.LastName}\n(Customer)";
+                $"Welcome,\n{customer.FirstName} {customer.LastName}\n(Customer)";
         }
 
         private void btnVehicles_Click(object sender, EventArgs e)
@@ -62,6 +65,9 @@ namespace VRMS.UI.Forms.Main
             LoadRentalsView();
         }
 
+        // =========================
+        // VEHICLES VIEW
+        // =========================
         private void LoadVehiclesView()
         {
             var vehicleService = new VehicleService(
@@ -91,13 +97,38 @@ namespace VRMS.UI.Forms.Main
             HighlightActiveButton(btnVehicles);
         }
 
-
+        // =========================
+        // RENTALS VIEW
+        // =========================
         private void LoadRentalsView()
         {
-            LoadView(new CustomersRentalsView());
+            var rentalsView = new CustomersRentalsView();
+
+            rentalsView.ProceedRentRequested += (_, __) =>
+            {
+                OpenCustomerRentalForm();
+            };
+
+            LoadView(rentalsView);
             HighlightActiveButton(btnRentals);
         }
 
+        // =========================
+        // NAVIGATION
+        // =========================
+        private void OpenCustomerRentalForm()
+        {
+            using (var rentalForm = new CustomerRentalForm())
+            {
+                rentalForm.StartPosition = FormStartPosition.CenterParent;
+                rentalForm.ShowDialog(this); 
+            }
+        }
+
+
+        // =========================
+        // VIEW MANAGEMENT
+        // =========================
         private void LoadView(UserControl view)
         {
             contentPanel.SuspendLayout();
@@ -123,7 +154,8 @@ namespace VRMS.UI.Forms.Main
                     btn.BackColor = System.Drawing.Color.Transparent;
             }
 
-            activeButton.BackColor = System.Drawing.Color.FromArgb(44, 62, 80);
+            activeButton.BackColor =
+                System.Drawing.Color.FromArgb(44, 62, 80);
         }
     }
 }

@@ -126,7 +126,7 @@ namespace VRMS.Forms
                 decimal amount = 1500.00m;
 
                 using var paymentForm =
-                    new ReservationDownPaymentForm();
+                    new ReservationFee();
                 // Optional future:
                 // paymentForm.SetData(
                 //     $"{_selectedCustomer.FirstName} {_selectedCustomer.LastName}",

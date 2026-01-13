@@ -6,17 +6,20 @@ namespace VRMS.Controls
 {
     public partial class CustomersRentalsView : UserControl
     {
+        // 🔔 Event for navigation
+        public event EventHandler ProceedRentRequested;
+
         public CustomersRentalsView()
         {
             InitializeComponent();
             InitializeGrid();
             InitializeStatusFilter();
-            ResetDetailsPanel();
-            WireUiOnlyEvents();
+            InitializeDefaultState();
+            WireUiEvents();
         }
 
         // =========================
-        // GRID SETUP (EMPTY)
+        // GRID SETUP (OPTIONAL)
         // =========================
         private void InitializeGrid()
         {
@@ -37,58 +40,56 @@ namespace VRMS.Controls
 
             dgvRentals.Columns["Amount"].DefaultCellStyle.Alignment =
                 DataGridViewContentAlignment.MiddleRight;
-
             dgvRentals.Columns["Amount"].DefaultCellStyle.Format =
                 "₱ #,##0.00";
         }
 
         // =========================
-        // STATUS FILTER (EMPTY)
+        // STATUS FILTER
         // =========================
         private void InitializeStatusFilter()
         {
             cbStatusFilter.Items.Clear();
-            cbStatusFilter.Items.Add("All");
-            cbStatusFilter.Items.Add("Active");
-            cbStatusFilter.Items.Add("Returned");
-            cbStatusFilter.Items.Add("Pending");
-            cbStatusFilter.Items.Add("Cancelled");
+            cbStatusFilter.Items.AddRange(new object[]
+            {
+                "All",
+                "Active",
+                "Returned",
+                "Pending",
+                "Cancelled"
+            });
 
             cbStatusFilter.SelectedIndex = 0;
         }
 
         // =========================
-        // DETAILS PANEL DEFAULT
+        // DEFAULT STATE
         // =========================
-        private void ResetDetailsPanel()
+        private void InitializeDefaultState()
         {
             pbVehicle.Image = null;
 
-            lblDetailVehicle.Text = "Select a rental";
+            lblDetailVehicle.Text = "Start a new rental anytime";
             lblDetailDates.Text = "Period: —";
             lblDetailAmount.Text = "Total: ₱ 0.00";
 
-            btnProceedRent.Enabled = false;
+            // ✅ ALWAYS ENABLED
+            btnProceedRent.Enabled = true;
             btnViewDetails.Enabled = false;
         }
 
         // =========================
-        // UI-ONLY EVENTS (STUBS)
+        // EVENTS
         // =========================
-        private void WireUiOnlyEvents()
+        private void WireUiEvents()
         {
-            btnRefresh.Click += (_, __) => ResetDetailsPanel();
+            btnRefresh.Click += (_, __) => InitializeDefaultState();
             btnViewDetails.Click += (_, __) => ShowComingSoon();
-            btnProceedRent.Click += (_, __) => ShowComingSoon();
 
-            txtSearch.TextChanged += (_, __) => { };
-            cbStatusFilter.SelectedIndexChanged += (_, __) => { };
-
-            dgvRentals.SelectionChanged += (_, __) =>
+            // ✅ Proceed Rent always clickable
+            btnProceedRent.Click += (_, __) =>
             {
-                // Placeholder behavior until real data is wired
-                btnViewDetails.Enabled = dgvRentals.SelectedRows.Count > 0;
-                btnProceedRent.Enabled = dgvRentals.SelectedRows.Count > 0;
+                ProceedRentRequested?.Invoke(this, EventArgs.Empty);
             };
         }
 
