@@ -11,7 +11,7 @@ using VRMS.Services.Customer;
 using VRMS.Services.Fleet;
 using VRMS.Services.Rental;
 
-namespace VRMS.UI.ApplicationService;
+namespace VRMS.UI.Config.ApplicationService;
 
 public static class ApplicationServices
 {

@@ -208,7 +208,7 @@ namespace VRMS.UI.Forms.Rentals
         {
             try
             {
-                // ---------------- VALIDATION ----------------
+                // ---------------- VALIDATION ---------------- //asd
 
                 if (_selectedCustomer == null)
                     throw new InvalidOperationException("Please select a customer.");
