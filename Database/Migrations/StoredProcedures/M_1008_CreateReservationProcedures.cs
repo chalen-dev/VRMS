@@ -13,6 +13,7 @@ public static class M_1008_CreateReservationProcedures
                                       {SP_Reservations_Cancel.Sql()}
                                       {SP_Reservations_UpdateStatus.Sql()}
                                       {SP_Reservations_GetAll.Sql()}
+                                      {SP_Reservations_IsFeePaid.Sql()}
                                       """;
 
     public static string Drop() => """
@@ -23,5 +24,6 @@ public static class M_1008_CreateReservationProcedures
                                    DROP PROCEDURE IF EXISTS sp_reservations_update_status;
                                    DROP PROCEDURE IF EXISTS sp_reservations_cancel;
                                    DROP PROCEDURE IF EXISTS sp_reservations_get_all;
+                                   DROP PROCEDURE IF EXISTS sp_reservations_is_fee_paid;
                                    """;
 }

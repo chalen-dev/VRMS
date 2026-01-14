@@ -18,6 +18,9 @@ public static class SP_Reservations_GetAll
                                           v.year AS vehicle_year,
                                           r.start_date AS start_date,
                                           r.end_date AS end_date,
+                                          r.estimated_rental_amount,
+                                          r.reservation_fee_amount,
+                                          r.reservation_fee_rate,
                                           r.status AS status
                                       FROM reservations r
                                       JOIN customers c ON r.customer_id = c.id

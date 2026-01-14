@@ -7,6 +7,7 @@ public static class SP_Payments_Create
 
                                   CREATE PROCEDURE sp_payments_create (
                                       IN p_invoice_id INT,
+                                      IN p_reservation_id INT,
                                       IN p_amount DECIMAL(10,2),
                                       IN p_payment_method VARCHAR(50),
                                       IN p_payment_type VARCHAR(50),
@@ -15,6 +16,7 @@ public static class SP_Payments_Create
                                   BEGIN
                                       INSERT INTO payments (
                                           invoice_id,
+                                          reservation_id,
                                           amount,
                                           payment_method,
                                           payment_type,
@@ -22,6 +24,7 @@ public static class SP_Payments_Create
                                       )
                                       VALUES (
                                           p_invoice_id,
+                                          p_reservation_id,
                                           p_amount,
                                           p_payment_method,
                                           p_payment_type,
@@ -31,5 +34,6 @@ public static class SP_Payments_Create
                                       SELECT LAST_INSERT_ID() AS payment_id;
                                   END;
                                   """;
+
 
 }

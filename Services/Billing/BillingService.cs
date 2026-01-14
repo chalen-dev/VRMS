@@ -144,7 +144,8 @@ public class BillingService
 
         var vehicle =
             _vehicleService.GetVehicleById(
-                reservation.VehicleId);
+                reservation?.VehicleId
+                ?? rental.VehicleId);
 
         EnsureInvoiceEditable(invoice.Id);
 
@@ -159,6 +160,16 @@ public class BillingService
             invoice.Id,
             "Base rental charge",
             baseRental);
+        
+        // -------- RESERVATION FEE CREDIT --------
+        if (reservation != null &&
+            reservation.ReservationFeeAmount > 0m)
+        {
+            _lineItemRepo.Create(
+                invoice.Id,
+                "Reservation fee (credited)",
+                -reservation.ReservationFeeAmount);
+        }
 
         // -------- LATE RETURN PENALTY --------
         var latePenalty =
@@ -286,6 +297,7 @@ public class BillingService
         var paymentId =
             _paymentRepo.Create(
                 invoiceId,
+                null,          // reservationId (NOT USED HERE)
                 amount,
                 method,
                 paymentType,
@@ -370,10 +382,12 @@ public class BillingService
 
         return _paymentRepo.Create(
             invoiceId,
+            null,          // reservationId
             amount,
             method,
             PaymentType.Refund,
             date);
+
     }
 
 

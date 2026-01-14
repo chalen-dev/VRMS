@@ -10,6 +10,9 @@ public static class SP_Reservations_Create
                                       IN p_vehicle_id INT,
                                       IN p_start_date DATETIME,
                                       IN p_end_date DATETIME,
+                                      IN p_estimated_rental DECIMAL(10,2),
+                                      IN p_reservation_fee DECIMAL(10,2),
+                                      IN p_reservation_fee_rate DECIMAL(5,2),
                                       IN p_status VARCHAR(50)
                                   )
                                   BEGIN
@@ -18,6 +21,9 @@ public static class SP_Reservations_Create
                                           vehicle_id,
                                           start_date,
                                           end_date,
+                                          estimated_rental_amount,
+                                          reservation_fee_amount,
+                                          reservation_fee_rate,
                                           status
                                       )
                                       VALUES (
@@ -25,6 +31,9 @@ public static class SP_Reservations_Create
                                           p_vehicle_id,
                                           p_start_date,
                                           p_end_date,
+                                          p_estimated_rental,
+                                          p_reservation_fee,
+                                          p_reservation_fee_rate,
                                           p_status
                                       );
 

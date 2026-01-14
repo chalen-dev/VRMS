@@ -12,6 +12,9 @@ public static class M_0009_CreateReservationsTable
                                          vehicle_id INT NOT NULL,
                                          start_date DATETIME NOT NULL,
                                          end_date DATETIME NOT NULL,
+                                         estimated_rental_amount DECIMAL(10,2) NOT NULL,
+                                         reservation_fee_amount DECIMAL(10,2) NOT NULL,
+                                         reservation_fee_rate DECIMAL(5,2) NOT NULL,
                                          status {Tbl.ToEnum<ReservationStatus>()} NOT NULL,
 
                                          CONSTRAINT fk_reservations_customer

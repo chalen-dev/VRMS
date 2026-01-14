@@ -30,7 +30,8 @@ public static class SeederRunner
                 services.GetRequiredService<DriversLicenseService>()
             ),
             new Rental.ReservationSeeder(
-                services.GetRequiredService<ReservationService>()
+                services.GetRequiredService<ReservationService>(),
+                services.GetRequiredService<PaymentRepository>()
             ),
             new Rental.RentalSeeder(
                 services.GetRequiredService<RentalService>()

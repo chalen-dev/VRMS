@@ -8,7 +8,10 @@ public static class M_0015_CreatePaymentsTable
     public static string Create() => $"""
                                       CREATE TABLE IF NOT EXISTS payments (
                                           id INT AUTO_INCREMENT PRIMARY KEY,
-                                          invoice_id INT NOT NULL,
+
+                                          invoice_id INT NULL,
+                                          reservation_id INT NULL,
+
                                           amount DECIMAL(10,2) NOT NULL,
                                           payment_method {Tbl.ToEnum<PaymentMethod>()} NOT NULL,
                                           payment_type {Tbl.ToEnum<PaymentType>()} NOT NULL,
@@ -17,9 +20,15 @@ public static class M_0015_CreatePaymentsTable
                                           CONSTRAINT fk_payments_invoice
                                               FOREIGN KEY (invoice_id)
                                               REFERENCES invoices(id)
-                                              ON DELETE CASCADE
+                                              ON DELETE CASCADE,
+
+                                          CONSTRAINT fk_payments_reservation
+                                              FOREIGN KEY (reservation_id)
+                                              REFERENCES reservations(id)
+                                              ON DELETE RESTRICT
                                       ) ENGINE=InnoDB;
                                       """;
+
 
     
     public static string Drop() => """

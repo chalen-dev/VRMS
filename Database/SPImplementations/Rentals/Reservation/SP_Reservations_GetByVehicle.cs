@@ -15,6 +15,9 @@ public static class SP_Reservations_GetByVehicle
                                           vehicle_id,
                                           start_date,
                                           end_date,
+                                          estimated_rental_amount,
+                                          reservation_fee_amount,
+                                          reservation_fee_rate,
                                           status
                                       FROM reservations
                                       WHERE vehicle_id = p_vehicle_id

@@ -116,7 +116,8 @@ public static class ApplicationServices
         new ReservationService(
             CustomerService,
             VehicleService,
-            _reservationRepo
+            _reservationRepo,
+            RateService
         );
 
     public static RateService RateService { get; } =

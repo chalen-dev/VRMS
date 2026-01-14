@@ -17,20 +17,27 @@ public class ReservationRepository
         int vehicleId,
         DateTime start,
         DateTime end,
+        decimal estimatedRental,
+        decimal reservationFee,
+        decimal reservationFeeRate,
         ReservationStatus status)
     {
         var table = DB.Query(
-            "CALL sp_reservations_create(@cid,@vid,@start,@end,@status);",
+            "CALL sp_reservations_create(@cid,@vid,@start,@end,@est,@fee,@rate,@status);",
             ("@cid", customerId),
             ("@vid", vehicleId),
             ("@start", start),
             ("@end", end),
+            ("@est", estimatedRental),
+            ("@fee", reservationFee),
+            ("@rate", reservationFeeRate),
             ("@status", status.ToString())
         );
 
         return Convert.ToInt32(
             table.Rows[0]["reservation_id"]);
     }
+
 
     // -------------------------------------------------
     // UPDATE
@@ -84,6 +91,17 @@ public class ReservationRepository
             "CALL sp_reservations_get_by_vehicle(@vid);",
             ("@vid", vehicleId)
         ));
+    
+    public bool IsReservationFeePaid(int reservationId)
+    {
+        var table = DB.Query(
+            "CALL sp_reservations_is_fee_paid(@rid);",
+            ("@rid", reservationId)
+        );
+
+        return Convert.ToInt32(
+            table.Rows[0]["cnt"]) > 0;
+    }
 
     // -------------------------------------------------
     // MAPPING
@@ -102,6 +120,12 @@ public class ReservationRepository
                 Convert.ToDateTime(row["start_date"]),
             EndDate =
                 Convert.ToDateTime(row["end_date"]),
+            EstimatedRentalAmount =
+                Convert.ToDecimal(row["estimated_rental_amount"]),
+            ReservationFeeAmount =
+                Convert.ToDecimal(row["reservation_fee_amount"]),
+            ReservationFeeRate =
+                Convert.ToDecimal(row["reservation_fee_rate"]),
             Status =
                 Enum.Parse<ReservationStatus>(
                     row["status"].ToString()!, true)

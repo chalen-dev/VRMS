@@ -1,5 +1,6 @@
 ﻿using VRMS.Database.Seeders;
 using VRMS.Enums;
+using VRMS.Repositories.Billing;
 using VRMS.Services.Rental;
 
 namespace VRMS.Database.Seeders.Rental;
@@ -9,10 +10,14 @@ public class ReservationSeeder : ISeeder
     public string Name => nameof(ReservationSeeder);
 
     private readonly ReservationService _reservationService;
+    private readonly PaymentRepository _paymentRepo;
 
-    public ReservationSeeder(ReservationService reservationService)
+    public ReservationSeeder(
+        ReservationService reservationService,
+        PaymentRepository paymentRepo)
     {
         _reservationService = reservationService;
+        _paymentRepo = paymentRepo;
     }
 
     public void Run()
@@ -25,6 +30,17 @@ public class ReservationSeeder : ISeeder
             endDate: DateTime.Today.AddDays(4)
         );
 
+        // PAY reservation fee BEFORE confirmation
+        _paymentRepo.Create(
+            invoiceId: null,
+            reservationId: r1,
+            amount: _reservationService
+                .GetReservationById(r1)
+                .ReservationFeeAmount,
+            method: PaymentMethod.Cash,
+            paymentType: PaymentType.Reservation,
+            date: DateTime.UtcNow
+        );
         _reservationService.ConfirmReservation(r1);
 
         // Customer 2 reserves Vehicle 2 (pending only)
@@ -41,6 +57,16 @@ public class ReservationSeeder : ISeeder
             vehicleId: 3,
             startDate: DateTime.Today.AddDays(2),
             endDate: DateTime.Today.AddDays(5)
+        );
+        _paymentRepo.Create(
+            invoiceId: null,
+            reservationId: r3,
+            amount: _reservationService
+                .GetReservationById(r3)
+                .ReservationFeeAmount,
+            method: PaymentMethod.Cash,
+            paymentType: PaymentType.Reservation,
+            date: DateTime.UtcNow
         );
 
         _reservationService.ConfirmReservation(r3);

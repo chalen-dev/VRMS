@@ -11,5 +11,11 @@ public class Reservation
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
 
-    public ReservationStatus Status { get; set; } = ReservationStatus.Pending;
+    // ---------------- PRICING ----------------
+    public decimal EstimatedRentalAmount { get; set; }
+    public decimal ReservationFeeAmount { get; set; }
+    public decimal ReservationFeeRate { get; set; }
+
+    public ReservationStatus Status { get; set; } =
+        ReservationStatus.Pending;
 }

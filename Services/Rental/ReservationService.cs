@@ -2,6 +2,7 @@
 using VRMS.Enums;
 using VRMS.Models.Rentals;
 using VRMS.Repositories.Rentals;
+using VRMS.Services.Billing;
 using VRMS.Services.Customer;
 using VRMS.Services.Fleet;
 
@@ -19,6 +20,8 @@ namespace VRMS.Services.Rental;
 /// </summary>
 public class ReservationService
 {
+    private readonly RateService _rateService;
+    
     /// <summary>
     /// Customer service used to validate rental eligibility.
     /// </summary>
@@ -40,12 +43,16 @@ public class ReservationService
     public ReservationService(
         CustomerService customerService,
         VehicleService vehicleService,
-        ReservationRepository reservationRepo)
+        ReservationRepository reservationRepo,
+        RateService rateService)
     {
         _customerService = customerService;
         _vehicleService = vehicleService;
         _reservationRepo = reservationRepo;
+        _rateService = rateService;
     }
+
+
 
     // -------------------------------------------------
     // CREATE
@@ -96,13 +103,35 @@ public class ReservationService
             vehicleId,
             startDate,
             endDate);
+        
 
+        // Estimated rental using authoritative pricing logic
+        decimal estimatedRental =
+            _rateService.CalculateRentalCost(
+                startDate,
+                endDate,
+                vehicle.VehicleCategoryId);
+
+        // Reservation fee (20%)
+        const decimal reservationFeeRate = 0.20m;
+
+        decimal reservationFee =
+            decimal.Round(
+                estimatedRental * reservationFeeRate,
+                2);
+
+        // Persist reservation
         return _reservationRepo.Create(
             customerId,
             vehicleId,
             startDate,
             endDate,
+            estimatedRental,
+            reservationFee,
+            reservationFeeRate,
             ReservationStatus.Pending);
+
+
     }
 
     // -------------------------------------------------
@@ -137,6 +166,13 @@ public class ReservationService
             reservation.EndDate,
             reservation.Id);
 
+        if (reservation.ReservationFeeAmount > 0m &&
+            !_reservationRepo.IsReservationFeePaid(reservation.Id))
+        {
+            throw new InvalidOperationException(
+                "Reservation fee must be paid before confirmation.");
+        }
+        
         // Lock vehicle
         _vehicleService.UpdateVehicleStatus(
             reservation.VehicleId,
