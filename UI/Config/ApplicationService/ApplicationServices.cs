@@ -2,12 +2,14 @@
 using VRMS.Repositories.Billing;
 using VRMS.Repositories.Customers;
 using VRMS.Repositories.Damages;
+using VRMS.Repositories.Dashboard;
 using VRMS.Repositories.Fleet;
 using VRMS.Repositories.Inspections;
 using VRMS.Repositories.Rentals;
 using VRMS.Services.Account;
 using VRMS.Services.Billing;
 using VRMS.Services.Customer;
+using VRMS.Services.Dashboard;
 using VRMS.Services.Fleet;
 using VRMS.Services.Rental;
 
@@ -18,6 +20,9 @@ public static class ApplicationServices
     // =====================================================
     // REPOSITORIES (SINGLETON)
     // =====================================================
+
+    private static readonly UserRepository _userRepo =
+        new UserRepository();
 
     private static readonly CustomerRepository _customerRepo =
         new CustomerRepository();
@@ -69,13 +74,23 @@ public static class ApplicationServices
 
     private static readonly VehicleInspectionRepository _inspectionRepo =
         new VehicleInspectionRepository();
-
+    
+    private static readonly DashboardRepository _dashboardRepo =
+        new DashboardRepository();
+    
+    private static readonly CustomerAuthService _customerAuthService =
+        new CustomerAuthService(_customerAccountRepo);
+    
+    
     // =====================================================
     // SERVICES (SINGLETON)
     // =====================================================
 
     public static DriversLicenseService DriversLicenseService { get; } =
         new DriversLicenseService();
+
+    public static UserService UserService { get; } =
+        new UserService(_userRepo);
 
     public static CustomerAccountService CustomerAccountService { get; } =
         new CustomerAccountService(_customerAccountRepo);
@@ -130,5 +145,10 @@ public static class ApplicationServices
             _damageRepo,
             _damageReportRepo
         );
-
+    
+    public static DashboardService DashboardService { get; } =
+        new DashboardService(_dashboardRepo);
+    
+    public static CustomerAuthService CustomerAuthService =>
+        _customerAuthService;
 }

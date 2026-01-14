@@ -20,6 +20,7 @@ using VRMS.Services.Billing;
 using VRMS.Services.Customer;
 using VRMS.Services.Fleet;
 using VRMS.Services.Rental;
+using VRMS.UI.Config.ApplicationService;
 using VRMS.UI.Forms.Rentals;
 
 namespace VRMS.Controls
@@ -41,67 +42,17 @@ namespace VRMS.Controls
         {
             InitializeComponent();
 
-            // =========================
-            // REPOSITORIES
-            // =========================
-            var customerRepo = new CustomerRepository();
-            var vehicleRepo = new VehicleRepository();
-            var categoryRepo = new VehicleCategoryRepository();
-            var featureRepo = new VehicleFeatureRepository();
-            var featureMapRepo = new VehicleFeatureMappingRepository();
-            var imageRepo = new VehicleImageRepository();
-            var maintenanceRepo = new MaintenanceRepository();
-            var reservationRepo = new ReservationRepository();
-            var rentalRepo = new RentalRepository();
-            var invoiceRepo = new InvoiceRepository();
-            var invoiceLineItemRepo = new InvoiceLineItemRepository();
-            var paymentRepo = new PaymentRepository();
-            var damageReportRepo = new DamageReportRepository(); // This is the 'damageRepo' parameter
-            var rateConfigRepo = new RateConfigurationRepository();
+            _customerService = ApplicationServices.CustomerService;
+            _vehicleService = ApplicationServices.VehicleService;
+            _reservationService = ApplicationServices.ReservationService;
+            _rentalService = ApplicationServices.RentalService;
+            _rateService = ApplicationServices.RateService;
+            _billingService = ApplicationServices.BillingService;
 
-            // NEW REPOSITORIES REQUIRED BY RENTALSERVICE
-            var inspectionRepo = new VehicleInspectionRepository();
-            var damageRepo = new DamageRepository();
-
-            // =========================
-            // SERVICES
-            // =========================
-            var driversLicenseService = new DriversLicenseService();
-            var customerAccountRepo = new CustomerAccountRepository();
-            var customerAccountService = new CustomerAccountService(customerAccountRepo);
-
-            _customerService = new CustomerService(driversLicenseService, customerAccountService);
-
-            _vehicleService = new VehicleService(
-                vehicleRepo, categoryRepo, featureRepo,
-                featureMapRepo, imageRepo, maintenanceRepo, rateConfigRepo);
-
-            _reservationService = new ReservationService(_customerService, _vehicleService, reservationRepo);
-            _rateService = new RateService(rateConfigRepo);
-
-            _billingService = new BillingService(
-                rentalRepo, _reservationService, _vehicleService, _rateService,
-                invoiceRepo, invoiceLineItemRepo, paymentRepo, damageReportRepo);
-
-            // UPDATED CONSTRUCTOR CALL
-            _rentalService = new RentalService(
-                _reservationService,
-                _vehicleService,
-                _customerService,
-                rentalRepo,
-                _billingService,
-                inspectionRepo,
-                damageRepo,
-                damageReportRepo
-            );
-
-
-            // =========================
-            // EVENTS
-            // =========================
             Load += RentalsView_Load;
             dgvRentals.SelectionChanged += DgvRentals_SelectionChanged;
         }
+
 
         private void RentalsView_Load(object sender, EventArgs e)
         {

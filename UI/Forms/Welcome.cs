@@ -9,6 +9,7 @@ using VRMS.Models.Accounts;
 using VRMS.Repositories.Accounts;
 using VRMS.Services.Account;
 using VRMS.UI.Config.Animation;
+using VRMS.UI.Config.ApplicationService;
 using VRMS.UI.Forms.Main;
 
 namespace VRMS.UI.Forms
@@ -17,27 +18,22 @@ namespace VRMS.UI.Forms
     {
         private UserControl? _currentControl;
         private readonly IAnimationManager _animationManager;
-        private readonly UserService _userService;
-        private readonly CustomerAuthService _customerAuthService;
+        private readonly UserService _userService =
+            ApplicationServices.UserService;
+
+        private readonly CustomerAuthService _customerAuthService =
+            ApplicationServices.CustomerAuthService;
 
         public Welcome()
         {
             InitializeComponent();
-
-            // =========================
-            // AUTH COMPOSITION ROOT
-            // =========================
-            var userRepo = new UserRepository();
-            _userService = new UserService(userRepo);
-
-            var customerRepo = new CustomerAccountRepository();
-            _customerAuthService = new CustomerAuthService(customerRepo);
 
             _animationManager = new WelcomeFormAnimationManager(this);
             _animationManager.AnimationCompleted += (_, __) => FocusContent();
 
             InitializeForm();
         }
+
 
         // =========================
         // FORM INIT

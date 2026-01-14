@@ -18,7 +18,6 @@ namespace VRMS.UI.Forms.Customers
         // =====================================================
         // CONSTRUCTOR
         // =====================================================
-
         public CustomerAccountForm(
             CustomerModel customer,
             CustomerAccountService accountService)

@@ -16,6 +16,7 @@ using VRMS.Services.Account;
 using VRMS.Services.Customer;
 using VRMS.Services.Fleet;
 using VRMS.Services.Rental;
+using VRMS.UI.Config.ApplicationService;
 using VRMS.UI.Forms;
 
 namespace VRMS.Controls
@@ -27,58 +28,16 @@ namespace VRMS.Controls
         private readonly CustomerService _customerService;
         private readonly ReservationService _reservationService;
         private readonly RentalService _rentalService;
-        private readonly VehicleImageRepository _vehicleImageRepo;
 
         public VehiclesView()
         {
             InitializeComponent();
 
-            // -------------------------
-            // Repositories
-            // -------------------------
-            var vehicleRepo = new VehicleRepository();
-            var categoryRepo = new VehicleCategoryRepository();
-            var featureRepo = new VehicleFeatureRepository();
-            var featureMapRepo = new VehicleFeatureMappingRepository();
-            var imageRepo = new VehicleImageRepository();
-            var maintenanceRepo = new MaintenanceRepository();
-            var reservationRepo = new ReservationRepository();
-            var rentalRepo = new RentalRepository();
-            var rateConfigRepo = new RateConfigurationRepository();
-
-            // NEW REPOSITORIES FOR RENTALSERVICE
-            var inspectionRepo = new VehicleInspectionRepository();
-            var damageRepo = new DamageRepository();
-            var damageReportRepo = new DamageReportRepository();
-
-            _vehicleImageRepo = imageRepo;
-
-            // -------------------------
-            // Services
-            // -------------------------
-            _vehicleService = new VehicleService(
-                vehicleRepo, categoryRepo, featureRepo,
-                featureMapRepo, imageRepo, maintenanceRepo, rateConfigRepo);
-
-            _driversLicenseService = new DriversLicenseService();
-            var customerAccountRepo = new CustomerAccountRepository();
-            var customerAccountService = new CustomerAccountService(customerAccountRepo);
-
-            _customerService = new CustomerService(_driversLicenseService, customerAccountService);
-
-            _reservationService = new ReservationService(_customerService, _vehicleService, reservationRepo);
-
-            // UPDATED WITH ALL 7 ARGUMENTS
-            _rentalService = new RentalService(
-                _reservationService,
-                _vehicleService,
-                _customerService,
-                rentalRepo,
-                null,               // BillingService (still null here)
-                inspectionRepo,
-                damageRepo,
-                damageReportRepo
-            );
+            _vehicleService = ApplicationServices.VehicleService;
+            _driversLicenseService = ApplicationServices.DriversLicenseService;
+            _customerService = ApplicationServices.CustomerService;
+            _reservationService = ApplicationServices.ReservationService;
+            _rentalService = ApplicationServices.RentalService;
 
             Load += VehiclesView_Load;
             dgvVehicles.SelectionChanged += DgvVehicles_SelectionChanged;
@@ -86,18 +45,14 @@ namespace VRMS.Controls
             flowLayoutPanelFeatures.AutoSize = true;
             flowLayoutPanelFeatures.WrapContents = true;
 
-            // -------------------------
-            // FILTER WIRING
-            // -------------------------
             cmbStatusFilter.SelectedIndexChanged += CmbStatusFilter_SelectedIndexChanged;
             cmbAdvancedFilter.SelectedIndexChanged += CmbAdvancedFilter_SelectedIndexChanged;
-
-            // Live search
             txtSearch.TextChanged += (_, _) => ApplyFilters();
 
-            // Button events
             btnRetire.Click += BtnRetire_Click;
+            btnUnderMaintenance.Click += btnUnderMaintenance_Click;
         }
+
 
         private void CmbStatusFilter_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -196,43 +151,60 @@ namespace VRMS.Controls
 
         private void BtnRetire_Click(object sender, EventArgs e)
         {
-            if (dgvVehicles.SelectedRows.Count == 0 || dgvVehicles.SelectedRows[0].DataBoundItem is not Vehicle vehicle)
+            if (dgvVehicles.SelectedRows.Count == 0 ||
+                dgvVehicles.SelectedRows[0].DataBoundItem is not Vehicle vehicle)
             {
-                MessageBox.Show("Please select a vehicle to retire.", "Retire Vehicle",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    "Please select a vehicle to retire.",
+                    "Retire Vehicle",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (vehicle.Status == VehicleStatus.Retired)
+            {
+                MessageBox.Show(
+                    "This vehicle is already retired.",
+                    "Retire Vehicle",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 return;
             }
 
             var result = MessageBox.Show(
-                $"Are you sure you want to retire vehicle '{vehicle.Make} {vehicle.Model}' (Plate: {vehicle.LicensePlate})?\n\n" +
-                "Retired vehicles will be removed from active fleet and archived.",
+                $"Are you sure you want to retire:\n\n" +
+                $"{vehicle.Make} {vehicle.Model}\n" +
+                $"Plate: {vehicle.LicensePlate}\n\n" +
+                "This action is permanent.",
                 "Confirm Retirement",
                 MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question
-            );
+                MessageBoxIcon.Warning);
 
-            if (result == DialogResult.Yes)
+            if (result != DialogResult.Yes)
+                return;
+
+            try
             {
-                try
-                {
-                    // Implement vehicle retirement logic here
-                    MessageBox.Show(
-                        $"Vehicle '{vehicle.Make} {vehicle.Model}' has been retired successfully.\n" +
-                        "Please implement the actual retirement logic in the VehicleService.",
-                        "Vehicle Retired",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                    );
+                _vehicleService.RetireVehicle(vehicle.Id);
+                LoadVehicles();
 
-                    LoadVehicles();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error retiring vehicle: {ex.Message}", "Error",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                MessageBox.Show(
+                    "Vehicle retired successfully.",
+                    "Success",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Failed to retire vehicle:\n{ex.Message}",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
+
 
         private void VehiclesView_Load(object? sender, EventArgs e)
         {
@@ -342,17 +314,31 @@ namespace VRMS.Controls
         {
             try
             {
-                var images = _vehicleImageRepo.GetByVehicle(vehicleId);
-                if (images == null || images.Count == 0) { picVehiclePreview.Image = null; return; }
+                var images = _vehicleService.GetVehicleImages(vehicleId);
+                if (images == null || images.Count == 0)
+                {
+                    picVehiclePreview.Image = null;
+                    return;
+                }
 
-                var fullPath = Path.Combine(AppContext.BaseDirectory, "Storage", images[0].ImagePath);
-                if (!File.Exists(fullPath)) { picVehiclePreview.Image = null; return; }
+                var fullPath =
+                    Path.Combine(AppContext.BaseDirectory, "Storage", images[0].ImagePath);
+
+                if (!File.Exists(fullPath))
+                {
+                    picVehiclePreview.Image = null;
+                    return;
+                }
 
                 using var fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
                 picVehiclePreview.Image = Image.FromStream(fs);
             }
-            catch { picVehiclePreview.Image = null; }
+            catch
+            {
+                picVehiclePreview.Image = null;
+            }
         }
+
 
         private void LoadVehicleFeatures(int vehicleId)
         {
@@ -403,5 +389,65 @@ namespace VRMS.Controls
             using var form = new AddCategoryForm(_vehicleService) { StartPosition = FormStartPosition.CenterParent };
             form.ShowDialog(this);
         }
+        
+        private void btnUnderMaintenance_Click(object sender, EventArgs e)
+        {
+            if (dgvVehicles.SelectedRows.Count == 0 ||
+                dgvVehicles.SelectedRows[0].DataBoundItem is not Vehicle vehicle)
+            {
+                MessageBox.Show(
+                    "Please select a vehicle.",
+                    "Under Maintenance",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (vehicle.Status == VehicleStatus.UnderMaintenance)
+            {
+                MessageBox.Show(
+                    "This vehicle is already under maintenance.",
+                    "Under Maintenance",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            var result = MessageBox.Show(
+                $"Mark this vehicle as UNDER MAINTENANCE?\n\n" +
+                $"{vehicle.Make} {vehicle.Model}\n" +
+                $"Plate: {vehicle.LicensePlate}",
+                "Confirm",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+                return;
+
+            try
+            {
+                _vehicleService.UpdateVehicleStatus(
+                    vehicle.Id,
+                    VehicleStatus.UnderMaintenance);
+
+                LoadVehicles();
+
+                MessageBox.Show(
+                    "Vehicle status updated to Under Maintenance.",
+                    "Success",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    ex.Message,
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+
     }
 }

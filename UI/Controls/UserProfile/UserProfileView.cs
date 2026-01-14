@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using VRMS.Models.Accounts;
 using VRMS.Services.Account;
+using VRMS.UI.Config.ApplicationService;
 
 namespace VRMS.Controls.UserProfile
 {
@@ -15,6 +16,13 @@ namespace VRMS.Controls.UserProfile
         private readonly int _userId;
 
         private User? _originalUser;
+        
+        public UserProfileView(int userId)
+            : this(
+                ApplicationServices.UserService,
+                userId)
+        {
+        }
 
         public UserProfileView(UserService userService, int userId)
         {
@@ -69,9 +77,9 @@ namespace VRMS.Controls.UserProfile
                 _originalUser.PhotoPath
             );
 
-            if (File.Exists(_originalUser.PhotoPath))
+            if (File.Exists(fullPhotoPath))
             {
-                using var fs = new FileStream(_originalUser.PhotoPath, FileMode.Open, FileAccess.Read);
+                using var fs = new FileStream(fullPhotoPath, FileMode.Open, FileAccess.Read);
                 picProfile.Image = Image.FromStream(fs);
             }
 
@@ -294,50 +302,6 @@ namespace VRMS.Controls.UserProfile
             txtNewPassword.Clear();
             txtConfirmPassword.Clear();
         }
-
-        private void AddPlaceholder(TextBox textBox, string placeholder)
-        {
-            textBox.Enter += (s, e) =>
-            {
-                if (textBox.Text == placeholder)
-                {
-                    textBox.Text = "";
-                    textBox.ForeColor = SystemColors.WindowText;
-                }
-            };
-
-            textBox.Leave += (s, e) =>
-            {
-                if (string.IsNullOrWhiteSpace(textBox.Text))
-                {
-                    textBox.Text = placeholder;
-                    textBox.ForeColor = Color.Gray;
-                }
-            };
-
-            // Set initial
-            if (string.IsNullOrWhiteSpace(textBox.Text))
-            {
-                textBox.Text = placeholder;
-                textBox.ForeColor = Color.Gray;
-            }
-        }
-
-        // Dummy user class for development - replace with your actual User class
-        private class DummyUser
-        {
-            public string Username { get; set; } = "john.doe";
-            public string FullName { get; set; } = "John Doe";
-            public string Email { get; set; } = "john.doe@example.com";
-            public string Phone { get; set; } = "+1234567890";
-            public string Role { get; set; } = "Administrator";
-            public string ProfileImagePath { get; set; } = "";
-        }
-
-        private DummyUser GetCurrentUser()
-        {
-            // TODO: Replace with actual user retrieval
-            return new DummyUser();
-        }
+        
     }
 }

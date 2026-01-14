@@ -17,6 +17,7 @@ using VRMS.Services.Account;
 using VRMS.Services.Customer;
 using VRMS.Services.Fleet;
 using VRMS.Services.Rental;
+using VRMS.UI.Config.ApplicationService;
 using VRMS.UI.Forms.Reservation;
 
 namespace VRMS.Controls
@@ -36,40 +37,9 @@ namespace VRMS.Controls
         {
             InitializeComponent();
 
-            // Repositories
-            var customerRepo = new CustomerRepository();
-
-            var vehicleRepo = new VehicleRepository();
-            var categoryRepo = new VehicleCategoryRepository();
-            var featureRepo = new VehicleFeatureRepository();
-            var featureMapRepo = new VehicleFeatureMappingRepository();
-            var imageRepo = new VehicleImageRepository();
-            var maintenanceRepo = new MaintenanceRepository();
-
-            var reservationRepo = new ReservationRepository();
-
-            // Services
-            var driversLicenseService = new DriversLicenseService();
-            var customerAccountRepo = new CustomerAccountRepository();
-            var customerAccountService = new CustomerAccountService(customerAccountRepo);
-
-            _customerService = new CustomerService(driversLicenseService, customerAccountService);
-
-            _vehicleService = new VehicleService(
-                vehicleRepo,
-                categoryRepo,
-                featureRepo,
-                featureMapRepo,
-                imageRepo,
-                maintenanceRepo,
-                new RateConfigurationRepository()
-            );
-
-            _reservationService = new ReservationService(
-                _customerService,
-                _vehicleService,
-                reservationRepo
-            );
+            _customerService = ApplicationServices.CustomerService;
+            _vehicleService = ApplicationServices.VehicleService;
+            _reservationService = ApplicationServices.ReservationService;
 
             // Events
             Load += ReservationsView_Load;
@@ -78,6 +48,8 @@ namespace VRMS.Controls
             cbStatusFilter.SelectedIndexChanged += (_, __) => ApplyFilters();
             btnViewDetails.Click += BtnViewDetails_Click;
         }
+
+
 
         private void ReservationsView_Load(object sender, EventArgs e)
         {
@@ -370,10 +342,7 @@ namespace VRMS.Controls
         }
         private void BtnNewReservation_Click(object sender, EventArgs e)
         {
-            using var form = new AddReservationForm(
-            _customerService,
-            _vehicleService
-            );
+            using var form = new AddReservationForm();
 
 
             if (form.ShowDialog(FindForm()) == DialogResult.OK)

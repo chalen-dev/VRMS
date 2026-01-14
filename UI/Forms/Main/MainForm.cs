@@ -7,6 +7,7 @@ using VRMS.Forms;
 using VRMS.Controls.UserProfile;
 using VRMS.Repositories.Accounts;
 using VRMS.Services.Account;
+using VRMS.UI.Config.ApplicationService;
 using VRMS.UI.Controls.CustomersView;
 using VRMS.UI.Forms;
 using VRMS.UI.Controls.CustomerVehicleCatalog;
@@ -30,7 +31,7 @@ namespace VRMS.Forms
         {
             InitializeComponent();
 
-            _userService = new UserService(new UserRepository());
+            _userService = ApplicationServices.UserService;
 
             SetupForm();
         }
@@ -201,12 +202,6 @@ namespace VRMS.Forms
                     break;
 
                 case "btnVehicles":
-                    if (IsCustomer())
-                    {
-                        ActivateButton(btnVehicles);
-                        return;
-                    }
-
                     ShowView(
                         new VehiclesView(),
                         "Vehicles",

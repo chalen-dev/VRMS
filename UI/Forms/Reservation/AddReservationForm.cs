@@ -5,6 +5,7 @@ using VRMS.Services.Billing;
 using VRMS.Services.Customer;
 using VRMS.Services.Fleet;
 using VRMS.Services.Rental;
+using VRMS.UI.Config.ApplicationService;
 using VRMS.UI.Forms.Select;
 
 namespace VRMS.UI.Forms.Reservation
@@ -13,60 +14,42 @@ namespace VRMS.UI.Forms.Reservation
     {
         private readonly CustomerService _customerService;
         private readonly VehicleService _vehicleService;
-        private ReservationService _reservationService;
-        private RateService _rateService;
-        private readonly ReservationRepository _reservationRepo = new ReservationRepository();
-        private readonly RateConfigurationRepository _rateConfigRepo = new RateConfigurationRepository();
-
+        private readonly ReservationService _reservationService;
+        private readonly RateService _rateService;
 
         private Models.Customers.Customer _selectedCustomer;
         private Vehicle _selectedVehicle;
 
-        public AddReservationForm(
-            CustomerService customerService,
-            VehicleService vehicleService)
+        public AddReservationForm()
         {
             InitializeComponent();
 
-            _customerService = customerService;
-            _vehicleService = vehicleService;
+            _customerService = ApplicationServices.CustomerService;
+            _vehicleService = ApplicationServices.VehicleService;
+            _reservationService = ApplicationServices.ReservationService;
+            _rateService = ApplicationServices.RateService;
 
-            // SERVICES USED IN FORM
-            _reservationService = new ReservationService(
-                _customerService,
-                _vehicleService,
-                _reservationRepo
-            );
-
-            _rateService = new RateService(_rateConfigRepo);
-
-            // Designer already wires button clicks
             btnCancel.Click += (_, __) => Close();
 
-            // wire date changes to recalc price
             dtpStart.ValueChanged += (_, __) => UpdateTotalEstimate();
             dtpEnd.ValueChanged += (_, __) => UpdateTotalEstimate();
-            
-            // default dates
+
             dtpStart.Value = DateTime.Today;
             dtpEnd.Value = dtpStart.Value.AddDays(1);
 
-            // keep end date always after start date
             dtpStart.ValueChanged += (_, __) =>
             {
                 if (dtpEnd.Value <= dtpStart.Value)
-                {
                     dtpEnd.Value = dtpStart.Value.AddDays(1);
-                }
 
-                // optional: enforce minimum end date
                 dtpEnd.MinDate = dtpStart.Value.AddDays(1);
-
                 UpdateTotalEstimate();
             };
 
             UpdateSaveButtonState();
         }
+
+
 
         // ----------------------------------
         // CUSTOMER

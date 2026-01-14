@@ -3,12 +3,13 @@ using System.Windows.Forms;
 using VRMS.Enums;
 using VRMS.Services.Account;
 using VRMS.Models.Accounts;
+using VRMS.UI.Config.ApplicationService;
 
 namespace VRMS.Controls
 {
     public partial class LoginUserControl : UserControl
     {
-        private readonly CustomerAuthService? _customerAuthService;
+        private readonly CustomerAuthService _customerAuthService;
 
         public CustomerAccount? LoggedInCustomer { get; private set; }
         public event EventHandler? GoToRegisterRequest;
@@ -20,18 +21,27 @@ namespace VRMS.Controls
 
         // Store logged-in user
         public User? LoggedInUser { get; private set; }
-
-        public LoginUserControl(
+        
+        public LoginUserControl()
+            : this(
+                ApplicationServices.UserService,
+                ApplicationServices.CustomerAuthService)
+        {
+        }
+        
+        internal LoginUserControl(
             UserService userService,
             CustomerAuthService customerAuthService)
         {
             InitializeComponent();
+
             _userService = userService;
             _customerAuthService = customerAuthService;
 
-            rbAgent.Checked = true; // default
+            rbAgent.Checked = true;
             SetupEventHandlers();
         }
+
 
 
         private void SetupEventHandlers()

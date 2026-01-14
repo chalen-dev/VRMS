@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using VRMS.Services.Account;
 using VRMS.Enums;
+using VRMS.UI.Config.ApplicationService;
 
 namespace VRMS.Controls
 {
@@ -11,8 +12,13 @@ namespace VRMS.Controls
         public event EventHandler GoBackToLoginRequest;
 
         private readonly UserService _userService;
+        
+        public RegisterUserControl()
+            : this(ApplicationServices.UserService)
+        {
+        }
 
-        public RegisterUserControl(UserService userService)
+        internal RegisterUserControl(UserService userService)
         {
             InitializeComponent();
             _userService = userService;

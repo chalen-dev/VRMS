@@ -13,6 +13,7 @@ using VRMS.UI.Controls.CustomerVehicleCatalog;
 using VRMS.UI.Controls.UserProfile;
 using VRMS.UI.Forms.Rentals;
 using VRMS.Controls;
+using VRMS.UI.Config.ApplicationService;
 
 namespace VRMS.UI.Forms.Main
 {
@@ -38,13 +39,7 @@ namespace VRMS.UI.Forms.Main
         public CustomerMainForm(CustomerAccount account) : this()
         {
             _account = account;
-
-            _customerService = new CustomerService(
-                new DriversLicenseService(),
-                new CustomerAccountService(
-                    new CustomerAccountRepository()
-                )
-            );
+            _customerService = ApplicationServices.CustomerService;
 
             InitializeCustomer();
             LoadVehiclesView();
@@ -97,26 +92,10 @@ namespace VRMS.UI.Forms.Main
                 "Find and reserve available vehicles"
             );
 
-            var vehicleService = new VehicleService(
-                new VehicleRepository(),
-                new VehicleCategoryRepository(),
-                new VehicleFeatureRepository(),
-                new VehicleFeatureMappingRepository(),
-                new VehicleImageRepository(),
-                new MaintenanceRepository(),
-                new RateConfigurationRepository()
-            );
-
-            var reservationService = new ReservationService(
-                _customerService,
-                vehicleService,
-                new ReservationRepository()
-            );
-
             LoadView(
                 new CustomerVehicleCatalog(
-                    vehicleService,
-                    reservationService,
+                    ApplicationServices.VehicleService,
+                    ApplicationServices.ReservationService,
                     _customer
                 )
             );
@@ -159,10 +138,8 @@ namespace VRMS.UI.Forms.Main
             );
 
             var customerProfileView = new CustomerProfileView(
-                _customerService,
-                new CustomerAccountService(
-                    new CustomerAccountRepository()
-                ),
+                ApplicationServices.CustomerService,
+                ApplicationServices.CustomerAccountService,
                 _customer.Id
             );
 

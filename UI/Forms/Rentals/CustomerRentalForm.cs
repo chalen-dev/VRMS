@@ -5,6 +5,7 @@ using VRMS.Services.Billing;
 using VRMS.Repositories.Fleet;
 using VRMS.Repositories.Billing;
 using VRMS.Models.Fleet;
+using VRMS.UI.Config.ApplicationService;
 using VRMS.UI.Forms.Select;
 
 namespace VRMS.UI.Forms.Rentals
@@ -20,20 +21,8 @@ namespace VRMS.UI.Forms.Rentals
         {
             InitializeComponent();
 
-            // ---------------- SERVICES ----------------
-            _vehicleService = new VehicleService(
-                new VehicleRepository(),
-                new VehicleCategoryRepository(),
-                new VehicleFeatureRepository(),
-                new VehicleFeatureMappingRepository(),
-                new VehicleImageRepository(),
-                new MaintenanceRepository(),
-                new RateConfigurationRepository()
-            );
-
-            _rateService = new RateService(
-                new RateConfigurationRepository()
-            );
+            _vehicleService = ApplicationServices.VehicleService;
+            _rateService    = ApplicationServices.RateService;
 
             InitializeState();
 

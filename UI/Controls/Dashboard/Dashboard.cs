@@ -6,6 +6,7 @@ using System.Windows.Forms.DataVisualization.Charting;
 using VRMS.Models.Dashboard;
 using VRMS.Repositories.Dashboard;
 using VRMS.Services.Dashboard;
+using VRMS.UI.Config.ApplicationService;
 
 namespace VRMS.Controls
 {
@@ -16,10 +17,8 @@ namespace VRMS.Controls
         {
             InitializeComponent();
 
-            // Manual wiring (same style as your other views)
-            var repo = new DashboardRepository();
-            _dashboardService = new DashboardService(repo);
-            
+            _dashboardService = ApplicationServices.DashboardService;
+
             dateRangePicker.Value =
                 new DateTime(
                     DateTime.Today.Year,
@@ -28,7 +27,6 @@ namespace VRMS.Controls
                 );
 
             dateRangePicker.ValueChanged += (s, e) => LoadDashboard();
-
             this.Load += (s, e) => LoadDashboard();
             btnRefresh.Click += (s, e) => LoadDashboard();
         }

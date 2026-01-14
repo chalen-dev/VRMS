@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using VRMS.Enums;
 using VRMS.Models.Accounts;
-using VRMS.Repositories.Accounts;
 using VRMS.Services.Account;
+using VRMS.UI.Config.ApplicationService;
 
 namespace VRMS.Controls
 {
@@ -17,19 +16,20 @@ namespace VRMS.Controls
         private CheckBox chkShowInactive;
         private ComboBox cmbRoleFilter;
 
+        // DEFAULT ctor — production usage
         public AdminView()
-            : this(new UserService(new UserRepository()))
+            : this(ApplicationServices.UserService)
         {
         }
 
-        public AdminView(UserService userService)
+        // OPTIONAL ctor — unit testing / isolation
+        internal AdminView(UserService userService)
         {
+            _userService = userService
+                ?? throw new ArgumentNullException(nameof(userService));
+
             InitializeComponent();
             SetupGrids();
-
-            _userService = userService
-                            ?? throw new ArgumentNullException(nameof(userService));
-
             AddUserFilters();
             WireEvents();
         }
@@ -40,7 +40,6 @@ namespace VRMS.Controls
             dgvUsers.AutoGenerateColumns = false;
             dgvUsers.Columns.Clear();
 
-            // ID Column - Fixed Width
             dgvUsers.Columns.Add(new DataGridViewTextBoxColumn
             {
                 HeaderText = "ID",
@@ -48,7 +47,6 @@ namespace VRMS.Controls
                 Width = 60
             });
 
-            // Username - Stretches to fill space
             dgvUsers.Columns.Add(new DataGridViewTextBoxColumn
             {
                 HeaderText = "Username",
@@ -57,7 +55,6 @@ namespace VRMS.Controls
                 FillWeight = 40
             });
 
-            // Full Name - Stretches to fill space
             dgvUsers.Columns.Add(new DataGridViewTextBoxColumn
             {
                 HeaderText = "Full Name",
@@ -66,7 +63,6 @@ namespace VRMS.Controls
                 FillWeight = 60
             });
 
-            // Role - Fixed Width
             dgvUsers.Columns.Add(new DataGridViewTextBoxColumn
             {
                 HeaderText = "Role",
@@ -74,7 +70,6 @@ namespace VRMS.Controls
                 Width = 120
             });
 
-            // Active - Fixed Width
             dgvUsers.Columns.Add(new DataGridViewCheckBoxColumn
             {
                 HeaderText = "Active",
@@ -133,27 +128,32 @@ namespace VRMS.Controls
             dgvUsers.DataSource = users.ToList();
         }
 
-        private void btnAddUser_Click(object sender, EventArgs e) => MessageBox.Show("Add User wiring is next.");
-        private void btnEditUser_Click(object sender, EventArgs e) => MessageBox.Show("Edit User wiring is next.");
+        private void btnAddUser_Click(object sender, EventArgs e)
+            => MessageBox.Show("Add User wiring is next.");
+
+        private void btnEditUser_Click(object sender, EventArgs e)
+            => MessageBox.Show("Edit User wiring is next.");
 
         private void btnDeleteUser_Click(object sender, EventArgs e)
         {
             if (dgvUsers.CurrentRow?.DataBoundItem is not User user) return;
-            if (MessageBox.Show($"Deactivate '{user.Username}'?", "Confirm", MessageBoxButtons.YesNo) == DialogResult.Yes)
+
+            if (MessageBox.Show(
+                $"Deactivate '{user.Username}'?",
+                "Confirm",
+                MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 _userService.Deactivate(user.Id);
                 ReloadUsers();
             }
         }
 
-        // FIXED: Replaced invalid AutoResizeColumns(Fill) call
         private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
         {
-            this.BeginInvoke((MethodInvoker)delegate
+            BeginInvoke((MethodInvoker)delegate
             {
-                if (dgvUsers != null && !dgvUsers.IsDisposed)
+                if (!dgvUsers.IsDisposed)
                 {
-                    // Forcing a layout update allows 'Fill' columns to adjust automatically
                     dgvUsers.PerformLayout();
                     dgvUsers.Refresh();
                 }

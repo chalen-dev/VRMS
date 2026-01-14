@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using VRMS.Models.Customers;
 using VRMS.Services.Customer;
 using VRMS.Services.Account;
+using VRMS.UI.Config.ApplicationService;
 using VRMS.UI.Services;
 
 namespace VRMS.UI.Controls.UserProfile
@@ -16,6 +17,14 @@ namespace VRMS.UI.Controls.UserProfile
         private readonly CustomerImageService _imageService = new();
 
         private Customer? _originalCustomer;
+        
+        public CustomerProfileView(int customerId)
+            : this(
+                ApplicationServices.CustomerService,
+                ApplicationServices.CustomerAccountService,
+                customerId)
+        {
+        }
 
         public CustomerProfileView(
             CustomerService customerService,
