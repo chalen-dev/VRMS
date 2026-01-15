@@ -16,7 +16,7 @@ namespace VRMS.UI.Forms.Maintenance
         // Flags for parent form
         public bool RecordCreated { get; private set; } = false;
         private bool VehicleStatusUpdated { get; set; } = false;
-        
+
         public MaintenanceForm(VehicleService vehicleService, VehicleDto vehicleDto)
         {
             _vehicleService = vehicleService;
@@ -28,8 +28,8 @@ namespace VRMS.UI.Forms.Maintenance
             LoadVehicleInfo();
             LoadHistory();
         }
-        
-        
+
+
 
         private void InitializeForm()
         {
@@ -41,9 +41,13 @@ namespace VRMS.UI.Forms.Maintenance
             lblStatusMessage.Text = "Ready";
             lblRecordCount.Text = "0 maintenance records";
 
-            WireComboBoxes(); 
+            WireComboBoxes();
 
             UpdateMarkAvailableButtonVisibility();
+
+            // --- History grid wiring ---
+            dgvHistory.SelectionChanged += dgvHistory_SelectionChanged;
+            dgvHistory.MultiSelect = false;
         }
 
         private void LoadVehicleInfo()
@@ -53,7 +57,7 @@ namespace VRMS.UI.Forms.Maintenance
                 lblVehicleMake.Text = $"Make: {currentVehicle.Make}";
                 lblVehicleModel.Text = $"Model: {currentVehicle.Model}";
                 lblPlateNo.Text = currentVehicle.LicensePlate;
-                
+
 
                 // Update button visibility
                 UpdateMarkAvailableButtonVisibility();
@@ -64,9 +68,11 @@ namespace VRMS.UI.Forms.Maintenance
         {
             if (currentVehicle != null)
             {
-                // Only show the "Mark Vehicle Available" button if vehicle is under maintenance
-                btnMarkAvailable.Visible = (currentVehicle.Status == VehicleStatus.UnderMaintenance);
-                btnMarkAvailable.Enabled = (currentVehicle.Status == VehicleStatus.UnderMaintenance);
+                btnMarkAvailable.Visible =
+                    currentVehicle.Status == VehicleStatus.UnderMaintenance;
+
+                btnMarkAvailable.Enabled =
+                    currentVehicle.Status == VehicleStatus.UnderMaintenance;
             }
             else
             {
@@ -74,6 +80,7 @@ namespace VRMS.UI.Forms.Maintenance
                 btnMarkAvailable.Enabled = false;
             }
         }
+
 
         private void LoadHistory()
         {
@@ -89,8 +96,8 @@ namespace VRMS.UI.Forms.Maintenance
             {
                 r.Id,
                 r.Title,
-                Type = r.Type.ToString(),
-                Status = r.Status.ToString(),
+                Type = EnumComboHelper.ToDisplay(r.Type),
+                Status = EnumComboHelper.ToDisplay(r.Status),
                 StartDate = r.StartDate.ToString("yyyy-MM-dd"),
                 EndDate = r.EndDate?.ToString("yyyy-MM-dd") ?? "N/A",
                 Cost = $"₱{r.Cost:N2}",
@@ -103,7 +110,7 @@ namespace VRMS.UI.Forms.Maintenance
             lblStatusMessage.Text =
                 $"Loaded history for {currentVehicle.Make} {currentVehicle.Model}";
         }
-        
+
         private void WireComboBoxes()
         {
             // ============================
@@ -257,6 +264,58 @@ namespace VRMS.UI.Forms.Maintenance
                 $"Maintenance '{record.Title}' saved.";
         }
 
+        private void dgvHistory_SelectionChanged(object? sender, EventArgs e)
+        {
+            // Nothing selected → reset detail panel
+            if (dgvHistory.SelectedRows.Count == 0)
+            {
+                ResetRecordDetails();
+                return;
+            }
+
+            var idCell = dgvHistory.SelectedRows[0].Cells["Id"].Value;
+            if (idCell == null)
+            {
+                ResetRecordDetails();
+                return;
+            }
+
+            int maintenanceId = Convert.ToInt32(idCell);
+
+            var record = _vehicleService.GetMaintenanceById(maintenanceId);
+            if (record == null)
+            {
+                ResetRecordDetails();
+                return;
+            }
+
+            // --- Populate detail panel ---
+            lblDetailTitle.Text = record.Title;
+            lblDetailType.Text = EnumComboHelper.ToDisplay(record.Type);
+            lblDetailStatus.Text = EnumComboHelper.ToDisplay(record.Status);
+            lblDetailStartDate.Text = record.StartDate.ToString("yyyy-MM-dd");
+            lblDetailEndDate.Text =
+                record.EndDate?.ToString("yyyy-MM-dd") ?? "N/A";
+            lblDetailCost.Text = $"₱{record.Cost:N2}";
+            txtDetailDescription.Text =
+                string.IsNullOrWhiteSpace(record.Description)
+                    ? "(No description)"
+                    : record.Description;
+        }
+
+
+        private void ResetRecordDetails()
+        {
+            lblDetailTitle.Text = "N/A";
+            lblDetailType.Text = "N/A";
+            lblDetailStatus.Text = "N/A";
+            lblDetailStartDate.Text = "N/A";
+            lblDetailEndDate.Text = "N/A";
+            lblDetailCost.Text = "₱0.00";
+            txtDetailDescription.Text = "No record selected";
+        }
+
+
 
 
         private void btnMarkAvailable_Click(object sender, EventArgs e)
@@ -296,7 +355,7 @@ namespace VRMS.UI.Forms.Maintenance
         {
             txtTitle.Clear();
             txtDescription.Clear();
-         
+
             cmbMaintenanceType.SelectedIndex = 0;
             cmbStatus.SelectedIndex = 0;
             dtpStart.Value = DateTime.Today;
@@ -402,6 +461,75 @@ namespace VRMS.UI.Forms.Maintenance
         {
             return currentVehicle?.Status ?? VehicleStatus.Available;
         }
-        
+
+        private void btnRetire_Click(object sender, EventArgs e)
+        {
+            if (currentVehicle == null)
+                return;
+
+            // 1. Hard safety checks
+            if (currentVehicle.Status == VehicleStatus.Rented ||
+                currentVehicle.Status == VehicleStatus.Reserved)
+            {
+                MessageBox.Show(
+                    "This vehicle is currently rented or reserved and cannot be retired.",
+                    "Retire Blocked",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return;
+            }
+
+            if (currentVehicle.Status == VehicleStatus.Retired)
+            {
+                MessageBox.Show(
+                    "This vehicle is already retired.",
+                    "Already Retired",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            // 2. Strong confirmation (retirement is permanent)
+            var confirm = MessageBox.Show(
+                "⚠️ WARNING ⚠️\n\n" +
+                "You are about to RETIRE this vehicle.\n\n" +
+                "• The vehicle will be permanently removed from service\n" +
+                "• It can NEVER be rented again\n" +
+                "• It can NEVER be edited again\n\n" +
+                "This action CANNOT be undone.\n\n" +
+                "Are you absolutely sure you want to retire this vehicle?",
+                "Confirm Vehicle Retirement",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning,
+                MessageBoxDefaultButton.Button2);
+
+            if (confirm != DialogResult.Yes)
+                return;
+
+            try
+            {
+                // 3. Retire via service (single source of truth)
+                _vehicleService.RetireVehicle(currentVehicle.Id);
+
+                // 4. Update local state
+                currentVehicle.Status = VehicleStatus.Retired;
+                VehicleStatusUpdated = true;
+
+                lblStatusMessage.Text = "Vehicle successfully retired.";
+
+                // 5. Close form so parent refreshes vehicle list
+                this.DialogResult = DialogResult.OK;
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    ex.Message,
+                    "Retire Failed",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
     }
 }

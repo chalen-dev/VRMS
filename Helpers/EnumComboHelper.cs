@@ -18,6 +18,14 @@ public static class EnumComboHelper
             })
             .ToList();
     }
+    
+    /// <summary>
+    /// Formats an enum value into a user-friendly display string.
+    /// </summary>
+    public static string ToDisplay(Enum value)
+    {
+        return FormatEnumName(value.ToString());
+    }
 
     /// <summary>
     /// Converts "RoutineService" -> "Routine Service"

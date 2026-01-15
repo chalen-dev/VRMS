@@ -385,7 +385,7 @@ namespace VRMS.UI.Controls.VehiclesView
             using var form = new AddCategoryForm(_vehicleService) { StartPosition = FormStartPosition.CenterParent };
             form.ShowDialog(this);
         }
-        
+
         private void btnUnderMaintenance_Click(object sender, EventArgs e)
         {
             // 1. Ensure a vehicle is selected
@@ -421,17 +421,9 @@ namespace VRMS.UI.Controls.VehiclesView
             // 4. If maintenance form updated vehicle status, persist it
             if (result == DialogResult.OK && form.IsVehicleStatusUpdated())
             {
-                var updatedStatus = form.GetUpdatedVehicleStatus();
-
-                _vehicleService.UpdateVehicleStatus(
-                    vehicle.Id,
-                    (VehicleStatus)updatedStatus
-                );
-
                 LoadVehicles();
             }
         }
-
 
 
     }
