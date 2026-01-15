@@ -2,14 +2,10 @@
 using System.Drawing;
 using System.Windows.Forms;
 using VRMS.Controls;
-using VRMS.Enums;
 using VRMS.Forms;
-using VRMS.Models.Accounts;
-using VRMS.Repositories.Accounts;
 using VRMS.Services.Account;
 using VRMS.UI.ApplicationService;
 using VRMS.UI.Config.Animation;
-using VRMS.UI.Config.Support;
 using VRMS.UI.Forms.Main;
 
 namespace VRMS.UI.Forms
@@ -18,6 +14,7 @@ namespace VRMS.UI.Forms
     {
         private UserControl? _currentControl;
         private readonly IAnimationManager _animationManager;
+
         private readonly UserService _userService =
             ApplicationServices.UserService;
 
@@ -33,7 +30,6 @@ namespace VRMS.UI.Forms
 
             InitializeForm();
         }
-
 
         // =========================
         // FORM INIT
@@ -114,44 +110,27 @@ namespace VRMS.UI.Forms
         }
 
         // =========================
-        // LOGIN SUCCESS HANDLER
+        // LOGIN SUCCESS
         // =========================
         private void HandleLoginSuccess(LoginUserControl login)
         {
-            // =========================
-            // INTERNAL USER (AGENT)
-            // =========================
             if (login.LoggedInUser != null)
             {
-                var user = login.LoggedInUser;
-
-                Session.CurrentUser = user;
-                Program.CurrentUserId = user.Id;
-                Program.CurrentUsername = user.Username;
-                Program.CurrentUserRole = user.Role.ToString();
-
                 var mainForm = new MainForm();
                 mainForm.Show();
                 Hide();
-
                 mainForm.FormClosed += (_, __) => Application.Exit();
                 return;
             }
 
-            // =========================
-            // CUSTOMER
-            // =========================
             if (login.LoggedInCustomer != null)
             {
-                Session.CurrentCustomer = login.LoggedInCustomer;
-
                 var customerForm =
                     new CustomerMainForm(login.LoggedInCustomer);
 
                 customerForm.Show();
                 Hide();
-
-                customerForm.FormClosed += OnChildFormClosed;
+                customerForm.FormClosed += (_, __) => Application.Exit();
             }
         }
 
@@ -167,7 +146,9 @@ namespace VRMS.UI.Forms
         public void UpdateAnimationFrame(float easedProgress, float rawProgress)
         {
             panelLeft.Left = (int)(ClientSize.Width * easedProgress);
-            panelLogin.Left = -panelLogin.Width + (int)(panelLogin.Width * easedProgress);
+            panelLogin.Left =
+                -panelLogin.Width +
+                (int)(panelLogin.Width * easedProgress);
         }
 
         public void OnAnimationComplete()
@@ -204,23 +185,12 @@ namespace VRMS.UI.Forms
                 ClientSize.Height
             );
 
+            // keep logo stable
+            picCompany.Left = 60;
+            picCompany.Top = 40;
+
             if (_currentControl != null)
                 CenterControl(_currentControl);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _animationManager.Dispose();
-                components?.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
-        private void OnChildFormClosed(object sender, FormClosedEventArgs e)
-        {
-            Application.Exit();
         }
     }
 }
