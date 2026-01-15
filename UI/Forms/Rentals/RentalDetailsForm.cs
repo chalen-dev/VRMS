@@ -9,7 +9,6 @@ using VRMS.Services.Fleet;
 using VRMS.Services.Rental;
 using VRMS.UI.ApplicationService;
 
-
 namespace VRMS.Forms
 {
     public partial class RentalDetailsForm : Form
@@ -23,7 +22,10 @@ namespace VRMS.Forms
         private static readonly string PlaceholderImagePath =
             Path.Combine(AppContext.BaseDirectory, "Assets", "img_placeholder.png");
 
-        // ✅ MAIN CONSTRUCTOR (USE THIS)
+        // =====================================================
+        // MAIN CONSTRUCTOR
+        // =====================================================
+
         public RentalDetailsForm(int rentalId)
         {
             InitializeComponent();
@@ -38,7 +40,10 @@ namespace VRMS.Forms
             btnClose.Click += (_, __) => Close();
         }
 
-        // ⚠️ DESIGNER SUPPORT ONLY
+        // =====================================================
+        // DESIGNER SUPPORT ONLY
+        // =====================================================
+
         public RentalDetailsForm()
         {
             InitializeComponent();
@@ -61,11 +66,8 @@ namespace VRMS.Forms
 
         private void LoadRentalDetails()
         {
-            var rental =
-                _rentalService.GetRentalById(_rentalId);
-
-            var vehicle =
-                _vehicleService.GetVehicleById(rental.VehicleId);
+            var rental = _rentalService.GetRentalById(_rentalId);
+            var vehicle = _vehicleService.GetVehicleById(rental.VehicleId);
 
             string customerName = "Walk-in";
 
@@ -74,8 +76,7 @@ namespace VRMS.Forms
                 var customer =
                     _customerService.GetCustomerById(rental.CustomerId.Value);
 
-                customerName =
-                    $"{customer.FirstName} {customer.LastName}";
+                customerName = $"{customer.FirstName} {customer.LastName}";
             }
 
             // -----------------------------
@@ -98,16 +99,11 @@ namespace VRMS.Forms
 
             dgvDamages.Rows.Clear();
 
-            // 💡 Until damage module is wired
-            // you can safely leave this empty
-            // or add a placeholder row:
-            // dgvDamages.Rows.Add("No damages recorded", "₱0.00");
-
             // -----------------------------
-            // EVIDENCE IMAGE
+            // PHOTO EVIDENCE
             // -----------------------------
 
-            LoadEvidenceImage(vehicle.Id);
+            LoadEvidenceImages(vehicle.Id);
         }
 
         // =====================================================
@@ -135,42 +131,92 @@ namespace VRMS.Forms
         }
 
         // =====================================================
-        // IMAGE LOADER
+        // MULTI IMAGE LOADER
         // =====================================================
 
-        private void LoadEvidenceImage(int vehicleId)
+        private void LoadEvidenceImages(int vehicleId)
         {
+            // Clear main image
             if (pbEvidence.Image != null)
             {
                 pbEvidence.Image.Dispose();
                 pbEvidence.Image = null;
             }
 
-            var images =
-                _vehicleService.GetVehicleImages(vehicleId);
+            // Clear thumbnails
+            flpEvidence.Controls.Clear();
 
-            string? imagePath =
-                images.Count > 0
-                    ? Path.Combine(
-                        AppContext.BaseDirectory,
-                        "Storage",
-                        images[0].ImagePath)
-                    : null;
+            var images = _vehicleService.GetVehicleImages(vehicleId);
 
-            if (string.IsNullOrWhiteSpace(imagePath) ||
-                !File.Exists(imagePath))
+            // NO IMAGES → PLACEHOLDER
+            if (images == null || images.Count == 0)
             {
-                imagePath = PlaceholderImagePath;
-                if (!File.Exists(imagePath))
-                    return;
+                LoadMainImage(PlaceholderImagePath);
+                return;
             }
 
-            using var fs =
-                new FileStream(
+            foreach (var img in images)
+            {
+                string imagePath = Path.Combine(
+                    AppContext.BaseDirectory,
+                    "Storage",
+                    img.ImagePath);
+
+                if (!File.Exists(imagePath))
+                    continue;
+
+                PictureBox thumb = new PictureBox
+                {
+                    Width = 100,
+                    Height = 100,
+                    SizeMode = PictureBoxSizeMode.Zoom,
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Cursor = Cursors.Hand,
+                    Margin = new Padding(6)
+                };
+
+                using (var fs = new FileStream(
                     imagePath,
                     FileMode.Open,
                     FileAccess.Read,
-                    FileShare.ReadWrite);
+                    FileShare.ReadWrite))
+                {
+                    thumb.Image = Image.FromStream(fs);
+                }
+
+                thumb.Click += (_, __) => LoadMainImage(imagePath);
+
+                flpEvidence.Controls.Add(thumb);
+            }
+
+            // Load first image by default
+            LoadMainImage(
+                Path.Combine(
+                    AppContext.BaseDirectory,
+                    "Storage",
+                    images.First().ImagePath));
+        }
+
+        // =====================================================
+        // MAIN IMAGE LOADER (SAFE)
+        // =====================================================
+
+        private void LoadMainImage(string imagePath)
+        {
+            if (!File.Exists(imagePath))
+                return;
+
+            if (pbEvidence.Image != null)
+            {
+                pbEvidence.Image.Dispose();
+                pbEvidence.Image = null;
+            }
+
+            using var fs = new FileStream(
+                imagePath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.ReadWrite);
 
             pbEvidence.Image = Image.FromStream(fs);
         }
