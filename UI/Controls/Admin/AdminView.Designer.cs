@@ -169,11 +169,11 @@
             dgvUsers.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
             dgvUsers.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = Color.FromArgb(45, 45, 65);
+            dataGridViewCellStyle1.BackColor = Color.FromArgb(32, 191, 158); // CHANGED TO TEAL COLOR
             dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             dataGridViewCellStyle1.ForeColor = Color.White;
             dataGridViewCellStyle1.Padding = new Padding(5, 0, 0, 0);
-            dataGridViewCellStyle1.SelectionBackColor = Color.FromArgb(45, 45, 65);
+            dataGridViewCellStyle1.SelectionBackColor = Color.FromArgb(32, 191, 158); // ALSO CHANGED SELECTION COLOR
             dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
             dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
             dgvUsers.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
