@@ -45,7 +45,10 @@
             panelVehicleList = new Panel();
             dgvVehicles = new DataGridView();
             panelStatusFilter = new Panel();
-            cmbAdvancedFilter = new ComboBox();
+            cmbTrasmissionType = new ComboBox();
+            cmbFuelType = new ComboBox();
+            cmbYear = new ComboBox();
+            cmbVehicleCategory = new ComboBox();
             lblStatusFilter = new Label();
             panelVehicleDetails = new Panel();
             panelFeatures = new Panel();
@@ -311,7 +314,10 @@
             // panelStatusFilter
             // 
             panelStatusFilter.BackColor = Color.White;
-            panelStatusFilter.Controls.Add(cmbAdvancedFilter);
+            panelStatusFilter.Controls.Add(cmbTrasmissionType);
+            panelStatusFilter.Controls.Add(cmbFuelType);
+            panelStatusFilter.Controls.Add(cmbYear);
+            panelStatusFilter.Controls.Add(cmbVehicleCategory);
             panelStatusFilter.Controls.Add(lblVehicleCount);
             panelStatusFilter.Controls.Add(lblStatusFilter);
             panelStatusFilter.Dock = DockStyle.Top;
@@ -320,17 +326,53 @@
             panelStatusFilter.Size = new Size(1088, 30);
             panelStatusFilter.TabIndex = 0;
             // 
-            // cmbAdvancedFilter
+            // cmbTrasmissionType
             // 
-            cmbAdvancedFilter.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbAdvancedFilter.FlatStyle = FlatStyle.Flat;
-            cmbAdvancedFilter.Font = new Font("Segoe UI", 8F);
-            cmbAdvancedFilter.FormattingEnabled = true;
-            cmbAdvancedFilter.Items.AddRange(new object[] { "Advanced Filters", "By Category", "By Fuel Type", "By Transmission" });
-            cmbAdvancedFilter.Location = new Point(60, 3);
-            cmbAdvancedFilter.Name = "cmbAdvancedFilter";
-            cmbAdvancedFilter.Size = new Size(150, 25);
-            cmbAdvancedFilter.TabIndex = 1;
+            cmbTrasmissionType.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbTrasmissionType.FlatStyle = FlatStyle.Flat;
+            cmbTrasmissionType.Font = new Font("Segoe UI", 8F);
+            cmbTrasmissionType.FormattingEnabled = true;
+            cmbTrasmissionType.Items.AddRange(new object[] { "Automatic", "Manual" });
+            cmbTrasmissionType.Location = new Point(528, 1);
+            cmbTrasmissionType.Name = "cmbTrasmissionType";
+            cmbTrasmissionType.Size = new Size(150, 25);
+            cmbTrasmissionType.TabIndex = 4;
+            // 
+            // cmbFuelType
+            // 
+            cmbFuelType.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbFuelType.FlatStyle = FlatStyle.Flat;
+            cmbFuelType.Font = new Font("Segoe UI", 8F);
+            cmbFuelType.FormattingEnabled = true;
+            cmbFuelType.Items.AddRange(new object[] { "Gasoline", "Electric", "Diesel", "Hybrid" });
+            cmbFuelType.Location = new Point(372, 3);
+            cmbFuelType.Name = "cmbFuelType";
+            cmbFuelType.Size = new Size(150, 25);
+            cmbFuelType.TabIndex = 3;
+            // 
+            // cmbYear
+            // 
+            cmbYear.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbYear.FlatStyle = FlatStyle.Flat;
+            cmbYear.Font = new Font("Segoe UI", 8F);
+            cmbYear.FormattingEnabled = true;
+            cmbYear.Items.AddRange(new object[] { "Year (Ascending)", "Year (Descending)" });
+            cmbYear.Location = new Point(55, 3);
+            cmbYear.Name = "cmbYear";
+            cmbYear.Size = new Size(150, 25);
+            cmbYear.TabIndex = 2;
+            // 
+            // cmbVehicleCategory
+            // 
+            cmbVehicleCategory.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbVehicleCategory.FlatStyle = FlatStyle.Flat;
+            cmbVehicleCategory.Font = new Font("Segoe UI", 8F);
+            cmbVehicleCategory.FormattingEnabled = true;
+            cmbVehicleCategory.Items.AddRange(new object[] { "MPV", "SUV", "Pickup", "Sedan", "Van" });
+            cmbVehicleCategory.Location = new Point(211, 3);
+            cmbVehicleCategory.Name = "cmbVehicleCategory";
+            cmbVehicleCategory.Size = new Size(150, 25);
+            cmbVehicleCategory.TabIndex = 1;
             // 
             // lblStatusFilter
             // 
@@ -678,7 +720,10 @@
         private Label lblFeaturesTitle;
         private FlowLayoutPanel flowLayoutPanelFeatures;
         private Button btnAddCategory;
-        private ComboBox cmbAdvancedFilter;
+        private ComboBox cmbVehicleCategory;
         private Button btnUnderMaintenance;
+        private ComboBox cmbTrasmissionType;
+        private ComboBox cmbFuelType;
+        private ComboBox cmbYear;
     }
 }

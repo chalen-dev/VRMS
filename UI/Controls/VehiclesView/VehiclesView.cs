@@ -38,7 +38,7 @@ namespace VRMS.UI.Controls.VehiclesView
             flowLayoutPanelFeatures.WrapContents = true;
 
             cmbStatusFilter.SelectedIndexChanged += CmbStatusFilter_SelectedIndexChanged;
-            cmbAdvancedFilter.SelectedIndexChanged += CmbAdvancedFilter_SelectedIndexChanged;
+            cmbVehicleCategory.SelectedIndexChanged += CmbAdvancedFilter_SelectedIndexChanged;
             txtSearch.TextChanged += (_, _) => ApplyFilters();
             
             btnUnderMaintenance.Click += btnUnderMaintenance_Click;
@@ -52,9 +52,9 @@ namespace VRMS.UI.Controls.VehiclesView
 
         private void CmbAdvancedFilter_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (cmbAdvancedFilter.SelectedItem != null)
+            if (cmbVehicleCategory.SelectedItem != null)
             {
-                var selectedFilter = cmbAdvancedFilter.SelectedItem.ToString();
+                var selectedFilter = cmbVehicleCategory.SelectedItem.ToString();
                 ApplyAdvancedFilter(selectedFilter);
             }
         }
@@ -228,7 +228,7 @@ namespace VRMS.UI.Controls.VehiclesView
 
             // Set default selections
             cmbStatusFilter.SelectedIndex = 0;
-            cmbAdvancedFilter.SelectedIndex = 0;
+            cmbVehicleCategory.SelectedIndex = 0;
         }
 
         private void ConfigureGrid()
