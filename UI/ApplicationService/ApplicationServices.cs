@@ -9,6 +9,7 @@ using VRMS.Repositories.Rentals;
 using VRMS.Services.Account;
 using VRMS.Services.Billing;
 using VRMS.Services.Customer;
+using VRMS.Services.Damage;
 using VRMS.Services.Dashboard;
 using VRMS.Services.Fleet;
 using VRMS.Services.Rental;
@@ -156,4 +157,7 @@ public static class ApplicationServices
     
     public static CustomerAuthService CustomerAuthService =>
         _customerAuthService;
+    
+    public static DamageService DamageService { get; } =
+        new DamageService();
 }

@@ -187,7 +187,21 @@ namespace VRMS.Controls
             lblDetailVehicle.Text = $"{vehicle.Year} {vehicle.Make} {vehicle.Model}";
             lblDetailCustomer.Text = $"{customer.FirstName} {customer.LastName}";
             lblDetailDates.Text = $"From {reservation.StartDate:d} to {reservation.EndDate:d}";
-            lblDetailAmount.Text = "Price: ₱ --";
+            // show the reservation fee in the details panel
+            decimal fee = 0m;
+            try
+            {
+                // Guard: convert to decimal in case the property type is double/decimal/object
+                fee = Convert.ToDecimal(reservation.ReservationFeeAmount);
+            }
+            catch
+            {
+                fee = 0m;
+            }
+
+            lblDetailAmount.Text = fee > 0m
+                ? $"Reservation Fee: ₱ {fee:N2}"
+                : "Reservation Fee: ₱ --";
 
             LoadVehicleImage(vehicle.Id);
         }

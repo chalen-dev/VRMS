@@ -246,7 +246,7 @@
             lblDetailAmount.Name = "lblDetailAmount";
             lblDetailAmount.Size = new Size(110, 25);
             lblDetailAmount.TabIndex = 4;
-            lblDetailAmount.Text = "Price: ₱ 0.0";
+            lblDetailAmount.Text = "Reservation Fee: ₱ --";
             // 
             // lblDetailDates
             // 

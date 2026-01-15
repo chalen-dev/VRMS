@@ -2,9 +2,11 @@
 using System.Linq;
 using VRMS.Forms;
 using VRMS.Models.Rentals;
+using VRMS.Services.Billing;
 using VRMS.Services.Customer;
 using VRMS.Services.Fleet;
 using VRMS.Services.Rental;
+using VRMS.UI.ApplicationService;
 
 namespace VRMS.UI.Forms.Rentals
 {
@@ -15,6 +17,8 @@ namespace VRMS.UI.Forms.Rentals
         private readonly ReservationService _reservationService;
         private readonly VehicleService _vehicleService;
         private readonly CustomerService _customerService;
+        private readonly RateService _rateService;
+        private readonly BillingService _billingService;
 
         private Rental _rental = null!;
 
@@ -28,7 +32,9 @@ namespace VRMS.UI.Forms.Rentals
             RentalService rentalService,
             ReservationService reservationService,
             VehicleService vehicleService,
-            CustomerService customerService)
+            CustomerService customerService,
+            RateService rateService,
+            BillingService billingService)
         {
             InitializeComponent();
 
@@ -37,9 +43,12 @@ namespace VRMS.UI.Forms.Rentals
             _reservationService = reservationService;
             _vehicleService = vehicleService;
             _customerService = customerService;
+            _rateService = rateService;
+            _billingService = billingService;
 
             Load += ReturnVehicleForm_Load;
             numOdometer.ValueChanged += NumOdometer_ValueChanged;
+            dtReturns.ValueChanged += DtReturns_ValueChanged;
         }
 
         // =====================================================
@@ -51,13 +60,11 @@ namespace VRMS.UI.Forms.Rentals
             var vehicle = _vehicleService.GetVehicleById(_rental.VehicleId);
 
             Models.Customers.Customer? customer = null;
-            if (_rental.ReservationId.HasValue)
-            {
-                var reservation =
-                    _reservationService.GetReservationById(_rental.ReservationId.Value);
 
+            if (_rental.CustomerId.HasValue)
+            {
                 customer =
-                    _customerService.GetCustomerById(reservation.CustomerId);
+                    _customerService.GetCustomerById(_rental.CustomerId.Value);
             }
 
             lblRentalId.Text = $"Rental #: {_rental.Id}";
@@ -80,6 +87,9 @@ namespace VRMS.UI.Forms.Rentals
             _baseRentalAmount = 0m;
             _lateFees = 0m;
             _damageFees = 0m;
+            
+            DtReturns_ValueChanged(null, EventArgs.Empty);
+
 
             ConfigureDamageGrid();
             UpdateBillingUI();
@@ -165,7 +175,12 @@ namespace VRMS.UI.Forms.Rentals
                 int inspectionId =
                     _rentalService.CreateOrGetReturnInspection(_rentalId);
 
-                using (var form = new AddDamageForm(inspectionId))
+                using (var form = new AddDamageForm(
+                           inspectionId,
+                           _rentalService,
+                           _vehicleService,
+                           ApplicationServices.DamageService
+                       ))
                 {
                     if (form.ShowDialog(this) == DialogResult.OK)
                     {
@@ -212,18 +227,23 @@ namespace VRMS.UI.Forms.Rentals
 
             try
             {
+                // Ensure invoice exists (NO state change)
+                _billingService.GetOrCreateInvoice(_rentalId);
+
+                // Show payment form FIRST
+                using (var paymentForm = new PaymentForm(_rentalId))
+                {
+                    if (paymentForm.ShowDialog(this) != DialogResult.OK)
+                        return; // DO NOTHING if payment cancelled
+                }
+
+                // NOW finalize rental (AUTHORITATIVE)
                 _rentalService.CompleteRental(
                     rentalId: _rentalId,
                     actualReturnDate: dtReturns.Value,
                     endOdometer: (int)numOdometer.Value,
                     endFuelLevel: (FuelLevel)cbFuels.SelectedIndex
                 );
-
-                using (var paymentForm = new PaymentForm(_rentalId))
-                {
-                    if (paymentForm.ShowDialog(this) != DialogResult.OK)
-                        return;
-                }
 
                 DialogResult = DialogResult.OK;
                 Close();
@@ -237,6 +257,7 @@ namespace VRMS.UI.Forms.Rentals
                     MessageBoxIcon.Error);
             }
         }
+
 
         // =====================================================
         // CANCEL
@@ -278,6 +299,29 @@ namespace VRMS.UI.Forms.Rentals
                     MessageBoxIcon.Error);
             }
         }
+        
+        private void DtReturns_ValueChanged(object? sender, EventArgs e)
+        {
+            try
+            {
+                var vehicle =
+                    _vehicleService.GetVehicleById(_rental.VehicleId);
+
+                _lateFees =
+                    _rateService.CalculateLatePenalty(
+                        _rental.ExpectedReturnDate,
+                        dtReturns.Value,
+                        vehicle.VehicleCategoryId);
+
+                UpdateBillingUI();
+            }
+            catch
+            {
+                _lateFees = 0m;
+                UpdateBillingUI();
+            }
+        }
+
 
     }
 }

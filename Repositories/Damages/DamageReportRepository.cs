@@ -89,9 +89,10 @@ public class DamageReportRepository
             Id = Convert.ToInt32(row["id"]),
             VehicleInspectionId = Convert.ToInt32(row["vehicle_inspection_id"]),
             DamageId = Convert.ToInt32(row["damage_id"]),
-            PhotoPath = photoPath,
+            PhotoPath = photoPath ?? string.Empty,
             Approved = Convert.ToBoolean(row["approved"])
         };
+
     }
     
     // ----------------------------

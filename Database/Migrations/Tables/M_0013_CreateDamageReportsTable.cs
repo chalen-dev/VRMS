@@ -7,7 +7,7 @@ public static class M_0013_CreateDamageReportsTable
                                          id INT AUTO_INCREMENT PRIMARY KEY,
                                          vehicle_inspection_id INT NOT NULL,
                                          damage_id INT NOT NULL,
-                                         photo_path VARCHAR(255) NOT NULL,
+                                         photo_path VARCHAR(255) NOT NULL DEFAULT '',
                                          approved BOOLEAN NOT NULL DEFAULT FALSE,
 
                                          CONSTRAINT fk_damage_reports_inspection

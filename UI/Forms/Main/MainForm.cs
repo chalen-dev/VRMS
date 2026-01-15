@@ -16,6 +16,7 @@ using VRMS.UI.Controls.History;
 using VRMS.UI.Controls.VehiclesView;
 using VRMS.Repositories.Reports;
 using VRMS.Services.Reports;
+using VRMS.UI.Controls.RentalsView;
 
 
 namespace VRMS.Forms

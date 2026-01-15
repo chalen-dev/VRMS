@@ -1,4 +1,4 @@
-﻿namespace VRMS.Controls
+﻿namespace VRMS.UI.Controls.RentalsView
 {
     partial class RentalsView
     {

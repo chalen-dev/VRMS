@@ -6,6 +6,8 @@ using System.Windows.Forms;
 using VRMS.DTOs.Damage;
 using VRMS.Enums;
 using VRMS.Services.Damage;
+using VRMS.Services.Fleet;
+using VRMS.Services.Rental;
 
 namespace VRMS.Forms
 {
@@ -16,19 +18,29 @@ namespace VRMS.Forms
         // =========================
 
         private readonly int _vehicleInspectionId;
+
+        private readonly RentalService _rentalService;
+        private readonly VehicleService _vehicleService;
         private readonly DamageService _damageService;
+
         private readonly List<string> _selectedPhotos = new();
 
         // =========================
         // CONSTRUCTOR
         // =========================
 
-        public AddDamageForm(int vehicleInspectionId)
+        public AddDamageForm(
+            int vehicleInspectionId,
+            RentalService rentalService,
+            VehicleService vehicleService,
+            DamageService damageService)
         {
             InitializeComponent();
 
             _vehicleInspectionId = vehicleInspectionId;
-            _damageService = new DamageService();
+            _rentalService = rentalService;
+            _vehicleService = vehicleService;
+            _damageService = damageService;
 
             // EVENTS
             Load += AddDamageForm_Load;
