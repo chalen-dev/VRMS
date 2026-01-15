@@ -18,7 +18,6 @@ namespace VRMS.Controls
 
             _dashboardService = ApplicationServices.DashboardService;
 
-            // Date picker = END MONTH selector
             dateRangePicker.Value =
                 new DateTime(
                     DateTime.Today.Year,
@@ -26,7 +25,7 @@ namespace VRMS.Controls
                     1
                 );
 
-            this.Load += (s, e) => LoadDashboard();
+            Load += (s, e) => LoadDashboard();
             btnRefresh.Click += (s, e) => LoadDashboard();
             dateRangePicker.ValueChanged += (s, e) => LoadDashboard();
         }
@@ -62,24 +61,16 @@ namespace VRMS.Controls
             // FLEET CARDS
             // -----------------------------
 
-            lblTotalValue.Text =
-                snapshot.Fleet.TotalVehicles.ToString();
-
-            lblAvailableValue.Text =
-                snapshot.Fleet.AvailableVehicles.ToString();
-
-            lblMaintenanceValue.Text =
-                snapshot.Fleet.UnderMaintenanceVehicles.ToString();
+            lblTotalValue.Text = snapshot.Fleet.TotalVehicles.ToString();
+            lblAvailableValue.Text = snapshot.Fleet.AvailableVehicles.ToString();
+            lblMaintenanceValue.Text = snapshot.Fleet.UnderMaintenanceVehicles.ToString();
 
             // -----------------------------
             // RENTAL CARDS
             // -----------------------------
 
-            lblRentedValue.Text =
-                snapshot.Rentals.ActiveRentals.ToString();
-
-            lblOverdueValue.Text =
-                snapshot.Rentals.OverdueRentals.ToString();
+            lblRentedValue.Text = snapshot.Rentals.ActiveRentals.ToString();
+            lblOverdueValue.Text = snapshot.Rentals.OverdueRentals.ToString();
 
             // -----------------------------
             // REVENUE CARD
@@ -89,7 +80,7 @@ namespace VRMS.Controls
                 $"₱{snapshot.Revenue.MonthlyRevenue:N0}";
 
             // -----------------------------
-            // CHART (FIXED)
+            // CHART (SINGLE SERIES — LEGEND FIXED)
             // -----------------------------
 
             SetupPerformanceChart(snapshot.MonthlyTrends);
@@ -102,13 +93,13 @@ namespace VRMS.Controls
         }
 
         // =====================================================
-        // CHART (DATE-BASED — REAL FIX)
+        // CHART (ONE SERIES, ONE COLOR = PERFECT LEGEND)
         // =====================================================
 
         private void SetupPerformanceChart(
             IReadOnlyList<DashboardMonthlyTrend> trends)
         {
-            // Remove old charts
+            // Clear old chart
             foreach (Control c in pnlChartArea.Controls)
             {
                 if (c is Chart oldChart)
@@ -118,7 +109,10 @@ namespace VRMS.Controls
             pnlChartArea.Controls.Clear();
             pnlChartArea.Controls.Add(lblChartTitle);
 
-            Chart chart = new Chart { Dock = DockStyle.Fill };
+            Chart chart = new Chart
+            {
+                Dock = DockStyle.Fill
+            };
 
             ChartArea area = new ChartArea("Main");
 
@@ -126,7 +120,6 @@ namespace VRMS.Controls
             area.AxisY.MajorGrid.LineColor =
                 Color.FromArgb(240, 240, 240);
 
-            // 🔥 KEY FIX
             area.AxisX.IntervalType = DateTimeIntervalType.Months;
             area.AxisX.Interval = 1;
             area.AxisX.LabelStyle.Format = "MMM yy";
@@ -136,40 +129,43 @@ namespace VRMS.Controls
 
             chart.ChartAreas.Add(area);
 
+            // -----------------------------
+            // SINGLE SERIES (NO PER-POINT COLOR)
+            // -----------------------------
+
             Series series = new Series("Rentals Completed")
             {
                 ChartType = SeriesChartType.Column,
                 XValueType = ChartValueType.DateTime,
-                Color = Color.FromArgb(52, 152, 219),
+                Color = Color.FromArgb(52, 152, 219), // BLUE
                 ToolTip = "#VAL rentals in #AXISLABEL"
             };
 
             series["PointWidth"] = "0.7";
-            series.Points.Clear();
 
             foreach (var item in trends)
             {
                 DateTime month =
                     new DateTime(item.Year, item.Month, 1);
 
-                int index =
-                    series.Points.AddXY(
-                        month,
-                        item.CompletedRentals
-                    );
-
-                // Highlight selected month
-                if (item.Year == dateRangePicker.Value.Year &&
-                    item.Month == dateRangePicker.Value.Month)
-                {
-                    series.Points[index].Color =
-                        Color.FromArgb(39, 174, 96);
-                }
+                series.Points.AddXY(
+                    month,
+                    item.CompletedRentals
+                );
             }
 
             chart.Series.Add(series);
-            chart.Legends.Add(
-                new Legend { Docking = Docking.Bottom });
+
+            // -----------------------------
+            // LEGEND (AUTO MATCHES SERIES)
+            // -----------------------------
+
+            chart.Legends.Add(new Legend
+            {
+                Docking = Docking.Bottom,
+                LegendStyle = LegendStyle.Row,
+                Alignment = StringAlignment.Center
+            });
 
             pnlChartArea.Controls.Add(chart);
             chart.BringToFront();

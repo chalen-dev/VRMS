@@ -292,11 +292,13 @@
             // dgvDamages
             // 
             dgvDamages.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvDamages.BackgroundColor = SystemColors.Control;
             dgvDamages.ColumnHeadersHeight = 29;
             dgvDamages.Location = new Point(20, 50);
             dgvDamages.Name = "dgvDamages";
             dgvDamages.ReadOnly = true;
             dgvDamages.RowHeadersWidth = 51;
+            dgvDamages.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvDamages.Size = new Size(580, 240);
             dgvDamages.TabIndex = 2;
             // 

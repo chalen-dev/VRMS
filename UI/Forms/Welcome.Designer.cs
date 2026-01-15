@@ -8,94 +8,101 @@
 
         private void InitializeComponent()
         {
-            this.panelRight = new System.Windows.Forms.Panel();
-            this.panelLeft = new System.Windows.Forms.Panel();
-            this.btnProceed = new System.Windows.Forms.Button();
-            this.lblSubtitle = new System.Windows.Forms.Label();
-            this.lblTitle = new System.Windows.Forms.Label();
-            this.panelLogin = new System.Windows.Forms.Panel();
-            this.panelLeft.SuspendLayout();
-            this.SuspendLayout();
-
-            // panelRight (BACKGROUND)
-            this.panelRight.BackColor = System.Drawing.Color.FromArgb(30, 41, 59);
-            this.panelRight.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelRight.Location = new System.Drawing.Point(0, 0);
-            this.panelRight.Name = "panelRight";
-            this.panelRight.Size = new System.Drawing.Size(1280, 720);
-            this.panelRight.TabIndex = 0;
-
-            // panelLeft (WELCOME PANEL)
-            this.panelLeft.BackColor = System.Drawing.Color.FromArgb(248, 250, 252);
-            this.panelLeft.Controls.Add(this.btnProceed);
-            this.panelLeft.Controls.Add(this.lblSubtitle);
-            this.panelLeft.Controls.Add(this.lblTitle);
-            this.panelLeft.Location = new System.Drawing.Point(0, 0);
-            this.panelLeft.Name = "panelLeft";
-            this.panelLeft.Size = new System.Drawing.Size(520, 720);
-            this.panelLeft.TabIndex = 1;
-
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Welcome));
+            panelRight = new Panel();
+            panelLeft = new Panel();
+            btnProceed = new Button();
+            lblSubtitle = new Label();
+            lblTitle = new Label();
+            panelLogin = new Panel();
+            panelLeft.SuspendLayout();
+            SuspendLayout();
+            // 
+            // panelRight
+            // 
+            panelRight.BackColor = Color.FromArgb(30, 41, 59);
+            panelRight.Dock = DockStyle.Fill;
+            panelRight.Location = new Point(0, 0);
+            panelRight.Margin = new Padding(3, 4, 3, 4);
+            panelRight.Name = "panelRight";
+            panelRight.Size = new Size(1280, 900);
+            panelRight.TabIndex = 0;
+            // 
+            // panelLeft
+            // 
+            panelLeft.BackColor = Color.FromArgb(248, 250, 252);
+            panelLeft.Controls.Add(btnProceed);
+            panelLeft.Controls.Add(lblSubtitle);
+            panelLeft.Controls.Add(lblTitle);
+            panelLeft.Location = new Point(0, 0);
+            panelLeft.Margin = new Padding(3, 4, 3, 4);
+            panelLeft.Name = "panelLeft";
+            panelLeft.Size = new Size(520, 900);
+            panelLeft.TabIndex = 1;
+            // 
             // btnProceed
-            this.btnProceed.BackColor = System.Drawing.Color.FromArgb(37, 99, 235);
-            this.btnProceed.FlatAppearance.BorderSize = 0;
-            this.btnProceed.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnProceed.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
-            this.btnProceed.ForeColor = System.Drawing.Color.White;
-            this.btnProceed.Location = new System.Drawing.Point(62, 350);
-            this.btnProceed.Name = "btnProceed";
-            this.btnProceed.Size = new System.Drawing.Size(160, 42);
-            this.btnProceed.TabIndex = 2;
-            this.btnProceed.Text = "Continue →";
-            this.btnProceed.UseVisualStyleBackColor = false;
-            this.btnProceed.Click += new System.EventHandler(this.btnProceed_Click);
-
+            // 
+            btnProceed.BackColor = Color.FromArgb(37, 99, 235);
+            btnProceed.FlatAppearance.BorderSize = 0;
+            btnProceed.FlatStyle = FlatStyle.Flat;
+            btnProceed.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            btnProceed.ForeColor = Color.White;
+            btnProceed.Location = new Point(62, 438);
+            btnProceed.Margin = new Padding(3, 4, 3, 4);
+            btnProceed.Name = "btnProceed";
+            btnProceed.Size = new Size(160, 52);
+            btnProceed.TabIndex = 2;
+            btnProceed.Text = "Continue →";
+            btnProceed.UseVisualStyleBackColor = false;
+            btnProceed.Click += btnProceed_Click;
+            // 
             // lblSubtitle
-            this.lblSubtitle.Font = new System.Drawing.Font("Segoe UI", 11F);
-            this.lblSubtitle.ForeColor = System.Drawing.Color.FromArgb(71, 85, 105);
-            this.lblSubtitle.Location = new System.Drawing.Point(62, 255);
-            this.lblSubtitle.Name = "lblSubtitle";
-            this.lblSubtitle.Size = new System.Drawing.Size(380, 70);
-            this.lblSubtitle.TabIndex = 1;
-            this.lblSubtitle.Text = "Manage vehicles, rentals, and customers efficiently using a modern desktop system.";
-
+            // 
+            lblSubtitle.Font = new Font("Segoe UI", 11F);
+            lblSubtitle.ForeColor = Color.FromArgb(71, 85, 105);
+            lblSubtitle.Location = new Point(62, 319);
+            lblSubtitle.Name = "lblSubtitle";
+            lblSubtitle.Size = new Size(380, 88);
+            lblSubtitle.TabIndex = 1;
+            lblSubtitle.Text = "Manage vehicles, rentals, and customers efficiently using a modern desktop system.";
+            // 
             // lblTitle
-            this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 26F, System.Drawing.FontStyle.Bold);
-            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(15, 23, 42);
-            this.lblTitle.Location = new System.Drawing.Point(60, 140);
-            this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(400, 100);
-            this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "Vehicle Rental\r\nManagement System";
-
-            // panelLogin (LOGIN SLIDE-IN)
-            this.panelLogin.BackColor = System.Drawing.Color.FromArgb(248, 250, 252);
-            this.panelLogin.Location = new System.Drawing.Point(-520, 0);
-            this.panelLogin.Name = "panelLogin";
-            this.panelLogin.Size = new System.Drawing.Size(520, 720);
-            this.panelLogin.TabIndex = 2;
-            this.panelLogin.Visible = false;
-
-            // Welcome (FORM)
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(1280, 720);
-            this.Controls.Add(this.panelLogin);
-            this.Controls.Add(this.panelLeft);
-            this.Controls.Add(this.panelRight);
-
-          
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
-
-            this.Name = "Welcome";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "VRMS - Welcome";
-
-            
-            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
-
-            this.panelLeft.ResumeLayout(false);
-            this.ResumeLayout(false);
+            // 
+            lblTitle.Font = new Font("Segoe UI", 26F, FontStyle.Bold);
+            lblTitle.ForeColor = Color.FromArgb(15, 23, 42);
+            lblTitle.Location = new Point(60, 175);
+            lblTitle.Name = "lblTitle";
+            lblTitle.Size = new Size(400, 125);
+            lblTitle.TabIndex = 0;
+            lblTitle.Text = "Vehicle Rental\r\nManagement System";
+            // 
+            // panelLogin
+            // 
+            panelLogin.BackColor = Color.FromArgb(248, 250, 252);
+            panelLogin.Location = new Point(-520, 0);
+            panelLogin.Margin = new Padding(3, 4, 3, 4);
+            panelLogin.Name = "panelLogin";
+            panelLogin.Size = new Size(520, 900);
+            panelLogin.TabIndex = 2;
+            panelLogin.Visible = false;
+            // 
+            // Welcome
+            // 
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.White;
+            ClientSize = new Size(1280, 900);
+            Controls.Add(panelLogin);
+            Controls.Add(panelLeft);
+            Controls.Add(panelRight);
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(3, 4, 3, 4);
+            Name = "Welcome";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "VRMS - Welcome";
+            WindowState = FormWindowState.Maximized;
+            panelLeft.ResumeLayout(false);
+            ResumeLayout(false);
         }
 
         #endregion

@@ -1,212 +1,216 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using VRMS.DTOs.Damage;
 using VRMS.Enums;
 using VRMS.Helpers;
 using VRMS.Models.Damages;
 using VRMS.Repositories.Damages;
 
-namespace VRMS.Services.Damage;
-
-/// <summary>
-/// Provides business logic for damage management, including:
-/// - Damage catalog maintenance (definitions and estimated costs)
-/// - Damage report creation and approval
-/// - Damage report photo management
-///
-/// This service enforces validation rules and approval state
-/// while delegating persistence to repositories.
-/// </summary>
-public class DamageService
+namespace VRMS.Services.Damage
 {
-    // ----------------------------
-    // CONSTANTS
-    // ----------------------------
-
-    private const string DamagePhotoFolder = "Damages";
-    private const string DamagePhotoFileName = "damage";
-
-    private const string DefaultDamagePhotoPath =
-        "Assets/img_placeholder.png";
-
-    // ----------------------------
-    // REPOSITORIES
-    // ----------------------------
-
-    private readonly DamageRepository _damageRepo;
-    private readonly DamageReportRepository _reportRepo;
-
-    // ----------------------------
-    // INIT
-    // ----------------------------
-
-    public DamageService()
+    public class DamageService
     {
-        _damageRepo = new DamageRepository();
-        _reportRepo = new DamageReportRepository();
-    }
+        // ----------------------------
+        // CONSTANTS
+        // ----------------------------
 
-    // ----------------------------
-    // DAMAGE CATALOG
-    // ----------------------------
+        private const string DamagePhotoFolder = "Damages";
+        private const string DamagePhotoFileName = "damage";
 
-    public int CreateDamage(
-        DamageType damageType,
-        string description,
-        decimal estimatedCost)
-    {
-        if (!Enum.IsDefined(typeof(DamageType), damageType))
-            throw new InvalidOperationException("Invalid damage type.");
+        private const string DefaultDamagePhotoPath =
+            "Assets/img_placeholder.png";
 
-        if (string.IsNullOrWhiteSpace(description))
-            throw new InvalidOperationException(
-                "Damage description is required.");
+        // ----------------------------
+        // REPOSITORIES
+        // ----------------------------
 
-        if (estimatedCost < 0)
-            throw new InvalidOperationException(
-                "Estimated cost cannot be negative.");
+        private readonly DamageRepository _damageRepo;
+        private readonly DamageReportRepository _reportRepo;
 
-        return _damageRepo.Create(
-            damageType,
-            description,
-            estimatedCost);
-    }
+        // ----------------------------
+        // INIT
+        // ----------------------------
 
-    public void UpdateDamage(
-        int damageId,
-        DamageType damageType,
-        string description,
-        decimal estimatedCost)
-    {
-        if (!Enum.IsDefined(typeof(DamageType), damageType))
-            throw new InvalidOperationException("Invalid damage type.");
+        public DamageService()
+        {
+            _damageRepo = new DamageRepository();
+            _reportRepo = new DamageReportRepository();
+        }
 
-        if (string.IsNullOrWhiteSpace(description))
-            throw new InvalidOperationException(
-                "Damage description is required.");
+        // ----------------------------
+        // DAMAGE CATALOG
+        // ----------------------------
 
-        if (estimatedCost < 0)
-            throw new InvalidOperationException(
-                "Estimated cost cannot be negative.");
+        public int CreateDamage(
+            DamageType damageType,
+            string description,
+            decimal estimatedCost)
+        {
+            if (!Enum.IsDefined(typeof(DamageType), damageType))
+                throw new InvalidOperationException("Invalid damage type.");
 
-        _damageRepo.GetById(damageId);
+            if (string.IsNullOrWhiteSpace(description))
+                throw new InvalidOperationException(
+                    "Damage description is required.");
 
-        _damageRepo.Update(
-            damageId,
-            damageType,
-            description,
-            estimatedCost);
-    }
+            if (estimatedCost < 0)
+                throw new InvalidOperationException(
+                    "Estimated cost cannot be negative.");
 
-    public void DeleteDamage(int damageId)
-    {
-        _damageRepo.Delete(damageId);
-    }
+            return _damageRepo.Create(
+                damageType,
+                description,
+                estimatedCost);
+        }
 
-    public Models.Damages.Damage GetDamageById(int damageId)
-        => _damageRepo.GetById(damageId);
+        public void UpdateDamage(
+            int damageId,
+            DamageType damageType,
+            string description,
+            decimal estimatedCost)
+        {
+            if (!Enum.IsDefined(typeof(DamageType), damageType))
+                throw new InvalidOperationException("Invalid damage type.");
 
-    public List<Models.Damages.Damage> GetAllDamages()
-        => _damageRepo.GetAll();
+            if (string.IsNullOrWhiteSpace(description))
+                throw new InvalidOperationException(
+                    "Damage description is required.");
 
-    // ----------------------------
-    // DAMAGE REPORTS
-    // ----------------------------
+            if (estimatedCost < 0)
+                throw new InvalidOperationException(
+                    "Estimated cost cannot be negative.");
 
-    public int CreateDamageReport(
-        int vehicleInspectionId,
-        int damageId)
-    {
-        _damageRepo.GetById(damageId);
+            _damageRepo.GetById(damageId);
 
-        return _reportRepo.Create(
-            vehicleInspectionId,
-            damageId);
-    }
+            _damageRepo.Update(
+                damageId,
+                damageType,
+                description,
+                estimatedCost);
+        }
 
-    public void ApproveDamageReport(int damageReportId)
-    {
-        var report =
-            _reportRepo.GetById(damageReportId);
+        public void DeleteDamage(int damageId)
+        {
+            _damageRepo.Delete(damageId);
+        }
 
-        if (report.Approved)
-            throw new InvalidOperationException(
-                "Damage report is already approved.");
+        public Models.Damages.Damage GetDamageById(int damageId)
+            => _damageRepo.GetById(damageId);
 
-        _reportRepo.Approve(
-            damageReportId);
-    }
+        public List<Models.Damages.Damage> GetAllDamages()
+            => _damageRepo.GetAll();
 
-    public DamageReport GetDamageReportById(int damageReportId)
-    {
-        var report =
-            _reportRepo.GetById(damageReportId);
+        // ----------------------------
+        // DAMAGE REPORTS
+        // ----------------------------
 
-        report.PhotoPath =
-            ResolvePhoto(report.PhotoPath);
+        public int CreateDamageReport(
+            int vehicleInspectionId,
+            int damageId)
+        {
+            _damageRepo.GetById(damageId);
 
-        return report;
-    }
+            return _reportRepo.Create(
+                vehicleInspectionId,
+                damageId);
+        }
 
-    public List<DamageReport> GetDamageReportsByInspection(
-        int vehicleInspectionId)
-    {
-        var list =
-            _reportRepo.GetByInspection(
-                vehicleInspectionId);
+        public void ApproveDamageReport(int damageReportId)
+        {
+            var report =
+                _reportRepo.GetById(damageReportId);
 
-        foreach (var r in list)
-            r.PhotoPath =
-                ResolvePhoto(r.PhotoPath);
+            if (report.Approved)
+                throw new InvalidOperationException(
+                    "Damage report is already approved.");
 
-        return list;
-    }
+            _reportRepo.Approve(
+                damageReportId);
+        }
 
-    // ----------------------------
-    // DAMAGE REPORT PHOTOS
-    // ----------------------------
+        public DamageReport GetDamageReportById(int damageReportId)
+        {
+            var report =
+                _reportRepo.GetById(damageReportId);
 
-    public void SetDamageReportPhoto(
-        int damageReportId,
-        Stream photoStream,
-        string originalFileName)
-    {
-        var relativePath =
-            FileStorageHelper.SaveSingleFile(
-                photoStream,
-                originalFileName,
+            report.PhotoPath =
+                ResolvePhoto(report.PhotoPath);
+
+            return report;
+        }
+
+        public List<DamageReport> GetDamageReportsByInspection(
+            int vehicleInspectionId)
+        {
+            var list =
+                _reportRepo.GetByInspection(
+                    vehicleInspectionId);
+
+            foreach (var r in list)
+                r.PhotoPath =
+                    ResolvePhoto(r.PhotoPath);
+
+            return list;
+        }
+
+        // ----------------------------
+        // READ-ONLY VEHICLE INFO (NEW)
+        // ----------------------------
+
+        public InspectionVehicleInfoDto
+            GetVehicleInfoByInspection(int inspectionId)
+        {
+            return _damageRepo.GetVehicleInfoByInspection(
+                inspectionId);
+        }
+
+        // ----------------------------
+        // DAMAGE REPORT PHOTOS
+        // ----------------------------
+
+        public void SetDamageReportPhoto(
+            int damageReportId,
+            Stream photoStream,
+            string originalFileName)
+        {
+            var relativePath =
+                FileStorageHelper.SaveSingleFile(
+                    photoStream,
+                    originalFileName,
+                    Path.Combine(
+                        DamagePhotoFolder,
+                        damageReportId.ToString()
+                    ),
+                    DamagePhotoFileName,
+                    clearDirectoryFirst: true
+                );
+
+            _reportRepo.SetPhoto(
+                damageReportId,
+                relativePath);
+        }
+
+        public void DeleteDamageReportPhoto(int damageReportId)
+        {
+            FileStorageHelper.DeleteDirectory(
                 Path.Combine(
                     DamagePhotoFolder,
                     damageReportId.ToString()
-                ),
-                DamagePhotoFileName,
-                clearDirectoryFirst: true
+                )
             );
 
-        _reportRepo.SetPhoto(
-            damageReportId,
-            relativePath);
+            _reportRepo.ResetPhoto(
+                damageReportId);
+        }
+
+        // ----------------------------
+        // HELPERS
+        // ----------------------------
+
+        private static string ResolvePhoto(string? path)
+            => string.IsNullOrWhiteSpace(path)
+                ? DefaultDamagePhotoPath
+                : path;
     }
-
-    public void DeleteDamageReportPhoto(int damageReportId)
-    {
-        FileStorageHelper.DeleteDirectory(
-            Path.Combine(
-                DamagePhotoFolder,
-                damageReportId.ToString()
-            )
-        );
-
-        _reportRepo.ResetPhoto(
-            damageReportId);
-    }
-
-    // ----------------------------
-    // HELPERS
-    // ----------------------------
-
-    private static string ResolvePhoto(string? path)
-        => string.IsNullOrWhiteSpace(path)
-            ? DefaultDamagePhotoPath
-            : path;
 }

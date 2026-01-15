@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CustomerMainForm));
             sidePanel = new Panel();
             navButtonsPanel = new FlowLayoutPanel();
             btnVehicles = new Button();
@@ -188,6 +189,7 @@
             Controls.Add(contentPanel);
             Controls.Add(mainHeader);
             Controls.Add(sidePanel);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(5, 4, 5, 4);
             MinimumSize = new Size(1140, 918);
             Name = "CustomerMainForm";

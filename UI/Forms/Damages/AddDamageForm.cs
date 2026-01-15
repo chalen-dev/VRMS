@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using VRMS.DTOs.Damage;
 using VRMS.Enums;
 using VRMS.Services.Damage;
 
@@ -11,11 +12,11 @@ namespace VRMS.Forms
     public partial class AddDamageForm : Form
     {
         // =========================
-        // TEMP STATE (UI ONLY)
+        // STATE
         // =========================
 
-        private readonly DamageService _damageService;
         private readonly int _vehicleInspectionId;
+        private readonly DamageService _damageService;
         private readonly List<string> _selectedPhotos = new();
 
         // =========================
@@ -27,7 +28,7 @@ namespace VRMS.Forms
             InitializeComponent();
 
             _vehicleInspectionId = vehicleInspectionId;
-            _damageService = new DamageService(); // TEMP: direct instantiation
+            _damageService = new DamageService();
 
             // EVENTS
             Load += AddDamageForm_Load;
@@ -42,13 +43,57 @@ namespace VRMS.Forms
 
         private void AddDamageForm_Load(object? sender, EventArgs e)
         {
-            // Populate damage types from enum
+            // Populate damage types
             cbDamageType.DataSource =
                 Enum.GetValues(typeof(DamageType));
 
             rbSeverityMinor.Checked = true;
 
+            // READ-ONLY vehicle info
+            txtVehicleModel.ReadOnly = true;
+            txtPlateNumber.ReadOnly = true;
+            txtRentalNumber.ReadOnly = true;
+
+            txtVehicleModel.BackColor = Color.WhiteSmoke;
+            txtPlateNumber.BackColor = Color.WhiteSmoke;
+            txtRentalNumber.BackColor = Color.WhiteSmoke;
+
+            // Auto-load vehicle info
+            LoadVehicleInfo();
+
             UpdatePhotoPlaceholder();
+        }
+
+        // =========================
+        // VEHICLE INFO (AUTO-FETCH)
+        // =========================
+
+        private void LoadVehicleInfo()
+        {
+            try
+            {
+                InspectionVehicleInfoDto info =
+                    _damageService.GetVehicleInfoByInspection(
+                        _vehicleInspectionId);
+
+                txtVehicleModel.Text = info.VehicleModel;
+                txtPlateNumber.Text = info.PlateNumber;
+                txtRentalNumber.Text = info.RentalNumber.ToString();
+
+                lblHeaderSubtitle.Text =
+                    $"{info.VehicleModel} • Plate {info.PlateNumber} • Rental #{info.RentalNumber}";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    ex.Message,
+                    "Vehicle Information Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+
+                Close();
+            }
         }
 
         // =========================
@@ -67,7 +112,7 @@ namespace VRMS.Forms
             if (dialog.ShowDialog() != DialogResult.OK)
                 return;
 
-            foreach (var file in dialog.FileNames)
+            foreach (string file in dialog.FileNames)
             {
                 if (_selectedPhotos.Contains(file))
                     continue;
@@ -113,7 +158,8 @@ namespace VRMS.Forms
 
         private void UpdatePhotoPlaceholder()
         {
-            lblNoPhotos.Visible = _selectedPhotos.Count == 0;
+            lblNoPhotos.Visible =
+                _selectedPhotos.Count == 0;
         }
 
         // =========================
@@ -126,31 +172,33 @@ namespace VRMS.Forms
             {
                 ValidateForm();
 
-                // -------------------------------
-                // DAMAGE CREATION (CATALOG)
-                // -------------------------------
+                // ----------------------------
+                // CREATE DAMAGE (CATALOG)
+                // ----------------------------
 
-                var damageType =
+                DamageType damageType =
                     (DamageType)cbDamageType.SelectedItem!;
 
-                int damageId = _damageService.CreateDamage(
-                    damageType: damageType,
-                    description: txtDescription.Text.Trim(),
-                    estimatedCost: numEstimatedCost.Value
-                );
+                int damageId =
+                    _damageService.CreateDamage(
+                        damageType,
+                        txtDescription.Text.Trim(),
+                        numEstimatedCost.Value
+                    );
 
-                // -------------------------------
-                // DAMAGE REPORT CREATION
-                // -------------------------------
+                // ----------------------------
+                // CREATE DAMAGE REPORT
+                // ----------------------------
 
-                int reportId = _damageService.CreateDamageReport(
-                    _vehicleInspectionId,
-                    damageId
-                );
+                int reportId =
+                    _damageService.CreateDamageReport(
+                        _vehicleInspectionId,
+                        damageId
+                    );
 
-                // -------------------------------
-                // SAVE PHOTO (TEMP: FIRST ONLY)
-                // -------------------------------
+                // ----------------------------
+                // SAVE FIRST PHOTO (TEMP)
+                // ----------------------------
 
                 if (_selectedPhotos.Count > 0)
                 {

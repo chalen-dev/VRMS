@@ -12,7 +12,7 @@ namespace VRMS.Controls
         public event EventHandler GoBackToLoginRequest;
 
         private readonly UserService _userService;
-        
+
         public RegisterUserControl()
             : this(ApplicationServices.UserService)
         {
@@ -35,8 +35,17 @@ namespace VRMS.Controls
 
         private void btnRegister_Click(object sender, EventArgs e)
         {
+            // Friendly protection in case a customer reaches this screen
+            MessageBox.Show(
+                "This registration page is intended for staff use only.\n\n" +
+                "If you are a customer, please ask a staff member to assist you.",
+                "Staff Registration",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            );
+
             string username = txtUsername.Text.Trim();
-            string email = txtEmail.Text.Trim(); // reserved for future use
+            string email = txtEmail.Text.Trim();
             string password = txtPassword.Text;
             string confirm = txtConfirmPass.Text;
 
@@ -71,7 +80,7 @@ namespace VRMS.Controls
             try
             {
                 // ----------------------------
-                // CREATE USER (DB)
+                // CREATE STAFF USER
                 // ----------------------------
 
                 _userService.CreateUser(
@@ -82,7 +91,7 @@ namespace VRMS.Controls
                 );
 
                 MessageBox.Show(
-                    "Registration successful! You may now log in.",
+                    "Staff registration successful! You may now log in.",
                     "Success",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information

@@ -17,6 +17,7 @@
 
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             sidePanel = new Panel();
             navButtonsPanel = new FlowLayoutPanel();
             btnDashboard = new Button();
@@ -25,6 +26,7 @@
             btnReservation = new Button();
             btnRentals = new Button();
             btnReports = new Button();
+            btnHistory = new Button();
             btnAdmin = new Button();
             btnLogout = new Button();
             headerPanel = new Panel();
@@ -32,7 +34,6 @@
             logoPictureBox = new PictureBox();
             contentPanel = new Panel();
             mainHeader = new VRMS.Controls.MainHeaderControl();
-            btnHistory = new Button();
             sidePanel.SuspendLayout();
             navButtonsPanel.SuspendLayout();
             headerPanel.SuspendLayout();
@@ -175,6 +176,23 @@
             btnReports.TextAlign = ContentAlignment.MiddleLeft;
             btnReports.UseVisualStyleBackColor = false;
             // 
+            // btnHistory
+            // 
+            btnHistory.BackColor = Color.Transparent;
+            btnHistory.FlatAppearance.BorderSize = 0;
+            btnHistory.FlatAppearance.MouseOverBackColor = Color.FromArgb(44, 62, 80);
+            btnHistory.FlatStyle = FlatStyle.Flat;
+            btnHistory.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btnHistory.ForeColor = Color.White;
+            btnHistory.Location = new Point(19, 470);
+            btnHistory.Margin = new Padding(5, 4, 5, 4);
+            btnHistory.Name = "btnHistory";
+            btnHistory.Size = new Size(251, 67);
+            btnHistory.TabIndex = 8;
+            btnHistory.Text = "⏱️ History";
+            btnHistory.TextAlign = ContentAlignment.MiddleLeft;
+            btnHistory.UseVisualStyleBackColor = false;
+            // 
             // btnAdmin
             // 
             btnAdmin.BackColor = Color.Transparent;
@@ -263,24 +281,6 @@
             mainHeader.Size = new Size(1294, 133);
             mainHeader.TabIndex = 3;
             // 
-            // btnHistory
-            // 
-            btnHistory.BackColor = Color.Transparent;
-            btnHistory.FlatAppearance.BorderSize = 0;
-            btnHistory.FlatAppearance.MouseOverBackColor = Color.FromArgb(44, 62, 80);
-            btnHistory.FlatStyle = FlatStyle.Flat;
-            btnHistory.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            btnHistory.ForeColor = Color.White;
-            btnHistory.Location = new Point(19, 470);
-            btnHistory.Margin = new Padding(5, 4, 5, 4);
-            btnHistory.Name = "btnHistory";
-            btnHistory.Size = new Size(251, 67);
-            btnHistory.TabIndex = 8;
-            btnHistory.Text = "⏱️ History";
-            btnHistory.TextAlign = ContentAlignment.MiddleLeft;
-            btnHistory.UseVisualStyleBackColor = false;
-            
-            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -290,6 +290,7 @@
             Controls.Add(contentPanel);
             Controls.Add(mainHeader);
             Controls.Add(sidePanel);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(5, 4, 5, 4);
             MinimumSize = new Size(1140, 918);
             Name = "MainForm";

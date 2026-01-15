@@ -15,20 +15,20 @@ namespace VRMS.Controls
         public event EventHandler? GoToRegisterRequest;
         public event EventHandler? LoginSuccess;
         public event EventHandler? ExitApplication;
-        
+
 
         private readonly UserService _userService;
 
         // Store logged-in user
         public User? LoggedInUser { get; private set; }
-        
+
         public LoginUserControl()
             : this(
                 ApplicationServices.UserService,
                 ApplicationServices.CustomerAuthService)
         {
         }
-        
+
         internal LoginUserControl(
             UserService userService,
             CustomerAuthService customerAuthService)
