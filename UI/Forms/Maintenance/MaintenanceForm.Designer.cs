@@ -424,6 +424,7 @@
             btnRetire.TabIndex = 9;
             btnRetire.Text = "♻ Retire";
             btnRetire.UseVisualStyleBackColor = false;
+            btnRetire.Click += btnRetire_Click;
             // 
             // btnMarkAvailable
             // 
