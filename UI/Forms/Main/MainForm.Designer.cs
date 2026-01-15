@@ -253,7 +253,7 @@
             // 
             // logoPictureBox
             // 
-            logoPictureBox.Image = Properties.Resources.company_logo;
+           
             logoPictureBox.Location = new Point(17, 20);
             logoPictureBox.Margin = new Padding(5, 4, 5, 4);
             logoPictureBox.Name = "logoPictureBox";
