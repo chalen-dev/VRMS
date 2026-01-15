@@ -160,24 +160,27 @@ public class RentalService
     /// Retrieves damages linked to a specific vehicle inspection.
     /// Used by ReturnVehicleForm for damage listing.
     /// </summary>
-    public IReadOnlyList<DamageDto> GetDamagesByInspectionId(
-        int vehicleInspectionId)
+    public IReadOnlyList<DamageReportListDto> GetDamagesByInspectionId(
+     int vehicleInspectionId)
+
     {
         var reports =
             _damageReportRepo.GetByInspection(vehicleInspectionId);
 
-        var result = new List<DamageDto>();
+        var result = new List<DamageReportListDto>();
 
         foreach (var report in reports)
         {
             var damage =
                 _damageRepo.GetById(report.DamageId);
 
-            result.Add(new DamageDto
+            result.Add(new DamageReportListDto
             {
+                DamageReportId = report.Id,
                 Description = damage.Description,
                 EstimatedCost = damage.EstimatedCost
             });
+
         }
 
         return result;
