@@ -57,6 +57,9 @@
 		<Compile Update="UI\Forms\Select\SelectVehicleForm.cs">
 			<SubType>Form</SubType>
 		</Compile>
+		<Compile Update="UI\Controls\RentalCalendar\CalendarView.cs">
+		  <SubType>UserControl</SubType>
+		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>

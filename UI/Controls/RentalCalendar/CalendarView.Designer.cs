@@ -1,4 +1,4 @@
-﻿namespace VRMS.UI.Controls.Rental_ReservationCalendar
+﻿namespace VRMS.UI.Controls.RentalCalendar
 {
     partial class CalendarView
     {
@@ -193,7 +193,7 @@
             dgvVehicles.AllowUserToAddRows = false;
             dgvVehicles.AllowUserToDeleteRows = false;
             dgvVehicles.AllowUserToResizeRows = false;
-            dgvVehicles.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+            dgvVehicles.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvVehicles.BackgroundColor = Color.White;
             dgvVehicles.BorderStyle = BorderStyle.None;
             dgvVehicles.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;

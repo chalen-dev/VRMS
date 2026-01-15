@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Reflection;
-using System.Windows.Forms;
+﻿using System.Reflection;
+using VRMS.Enums;
+using VRMS.Models.Fleet;
+using VRMS.Models.Rentals;
+using VRMS.Services.Fleet;
+using VRMS.Services.Rental;
+using VRMS.UI.ApplicationService;
 
-namespace VRMS.UI.Controls.Rental_ReservationCalendar
+namespace VRMS.UI.Controls.RentalCalendar
 {
     public partial class CalendarView : UserControl
     {
@@ -17,94 +19,21 @@ namespace VRMS.UI.Controls.Rental_ReservationCalendar
         private const int DayStartHour = 8;        // 8 AM
         private const int DayEndHour = 20;         // 8 PM
 
-        // ===============================
-        // ENUMS
-        // ===============================
-        public enum VehicleStatus
-        {
-            Available,
-            Rented,
-            UnderMaintenance
-        }
+        private readonly RentalService _rentalService =
+            ApplicationServices.RentalService;
+
+        private readonly VehicleService _vehicleService =
+            ApplicationServices.VehicleService;
 
         // ===============================
         // STATE
         // ===============================
         private DateTime _currentDate;
-
-        // ===============================
-        // DUMMY VEHICLE MODEL
-        // ===============================
-        private class DummyVehicle
-        {
-            public int RowId { get; set; }
-            public string LicensePlate { get; set; }
-            public string Model { get; set; }
-            public int Year { get; set; }
-            public string Category { get; set; }
-            public VehicleStatus Status { get; set; }
-        }
-
-        // ===============================
-        // DUMMY RENTAL MODEL
-        // ===============================
-        private class DummyRental
-        {
-            public int VehicleRow { get; set; }   // row index
-            public int StartDay { get; set; }     // day of month
-            public int Duration { get; set; }     // days long
-            public string Customer { get; set; }
-            public Color Color { get; set; }
-        }
-
-        // ===============================
-        // DUMMY MAINTENANCE MODEL
-        // ===============================
-        private class DummyMaintenance
-        {
-            public int VehicleRow { get; set; }
-            public int StartDay { get; set; }
-            public int Duration { get; set; }
-            public string Description { get; set; }
-            public Color Color { get; set; }
-        }
-
-        // ===============================
-        // DUMMY DATA
-        // ===============================
-        private readonly List<DummyVehicle> _dummyVehicles = new()
-        {
-            new DummyVehicle { RowId = 0, LicensePlate = "ABC-123", Model = "Toyota Corolla", Year = 2022, Category = "Small", Status = VehicleStatus.Available },
-            new DummyVehicle { RowId = 1, LicensePlate = "DEF-456", Model = "Honda CR-V", Year = 2021, Category = "Medium", Status = VehicleStatus.Rented },
-            new DummyVehicle { RowId = 2, LicensePlate = "GHI-789", Model = "Ford Escape", Year = 2023, Category = "Medium", Status = VehicleStatus.UnderMaintenance },
-            new DummyVehicle { RowId = 3, LicensePlate = "JKL-012", Model = "Chevrolet Tahoe", Year = 2020, Category = "Large", Status = VehicleStatus.Available },
-            new DummyVehicle { RowId = 4, LicensePlate = "MNO-345", Model = "Toyota Camry", Year = 2022, Category = "Small", Status = VehicleStatus.Rented },
-            new DummyVehicle { RowId = 5, LicensePlate = "PQR-678", Model = "Jeep Wrangler", Year = 2023, Category = "Large", Status = VehicleStatus.Available },
-            new DummyVehicle { RowId = 6, LicensePlate = "STU-901", Model = "Hyundai Elantra", Year = 2021, Category = "Small", Status = VehicleStatus.UnderMaintenance },
-            new DummyVehicle { RowId = 7, LicensePlate = "VWX-234", Model = "Nissan Rogue", Year = 2022, Category = "Medium", Status = VehicleStatus.Available }
-        };
-
-        private readonly List<DummyRental> _dummyRentals = new()
-        {
-            // Monthly view rentals only
-            new DummyRental { VehicleRow = 0, StartDay = 2,  Duration = 3, Customer = "Juan D.", Color = Color.SkyBlue },
-            new DummyRental { VehicleRow = 1, StartDay = 5,  Duration = 4, Customer = "Maria S.", Color = Color.LightGreen },
-            new DummyRental { VehicleRow = 2, StartDay = 1,  Duration = 2, Customer = "Alex R.", Color = Color.Khaki },
-            new DummyRental { VehicleRow = 3, StartDay = 10, Duration = 5, Customer = "Chris T.", Color = Color.Plum },
-            new DummyRental { VehicleRow = 4, StartDay = 8,  Duration = 3, Customer = "Liam K.", Color = Color.LightSalmon },
-            new DummyRental { VehicleRow = 5, StartDay = 15, Duration = 2, Customer = "Emma W.", Color = Color.LightCoral },
-            new DummyRental { VehicleRow = 6, StartDay = 20, Duration = 4, Customer = "Noah B.", Color = Color.LightSeaGreen },
-            new DummyRental { VehicleRow = 7, StartDay = 18, Duration = 3, Customer = "Olivia M.", Color = Color.LightSkyBlue }
-        };
-
-        private readonly List<DummyMaintenance> _dummyMaintenance = new()
-        {
-            // Monthly view maintenance only
-            new DummyMaintenance { VehicleRow = 2, StartDay = 5, Duration = 3, Description = "Oil Change & Brakes", Color = Color.Orange },
-            new DummyMaintenance { VehicleRow = 6, StartDay = 12, Duration = 2, Description = "Tire Replacement", Color = Color.OrangeRed },
-            new DummyMaintenance { VehicleRow = 1, StartDay = 20, Duration = 1, Description = "Engine Check", Color = Color.DarkOrange },
-            new DummyMaintenance { VehicleRow = 4, StartDay = 25, Duration = 4, Description = "Major Service", Color = Color.Coral }
-        };
+        private List<Rental> _monthRentals = new();
+        private List<MaintenanceRecord> _monthMaintenance = new();
+        private List<Vehicle> _vehicles = new();
+        private int CalendarLeftOffset =>
+            0;
 
         public CalendarView()
         {
@@ -147,17 +76,14 @@ namespace VRMS.UI.Controls.Rental_ReservationCalendar
         // ===============================
         private void SetupVehicleDataGrid()
         {
-            // Clear existing rows
             dgvVehicles.Rows.Clear();
 
-            // Set consistent row height
             dgvVehicles.RowTemplate.Height = RowHeight;
-
-            // Use slightly larger font for taller rows
             dgvVehicles.DefaultCellStyle.Font = new Font("Segoe UI", 9.5f);
 
-            // Add vehicle data
-            foreach (var vehicle in _dummyVehicles)
+            _vehicles = _vehicleService.GetAllVehicles();
+
+            foreach (var vehicle in _vehicles)
             {
                 int rowIndex = dgvVehicles.Rows.Add(
                     vehicle.Year.ToString(),
@@ -165,32 +91,29 @@ namespace VRMS.UI.Controls.Rental_ReservationCalendar
                     vehicle.Model
                 );
 
-                // Color code based on status
-                DataGridViewRow row = dgvVehicles.Rows[rowIndex];
-
-                // Set row height explicitly
+                var row = dgvVehicles.Rows[rowIndex];
                 row.Height = RowHeight;
 
                 switch (vehicle.Status)
                 {
                     case VehicleStatus.Available:
-                        row.DefaultCellStyle.BackColor = Color.FromArgb(240, 255, 240); // Light green
+                        row.DefaultCellStyle.BackColor = Color.FromArgb(240, 255, 240);
                         break;
+
                     case VehicleStatus.Rented:
-                        row.DefaultCellStyle.BackColor = Color.FromArgb(240, 248, 255); // Light blue
+                        row.DefaultCellStyle.BackColor = Color.FromArgb(240, 248, 255);
                         break;
+
                     case VehicleStatus.UnderMaintenance:
-                        row.DefaultCellStyle.BackColor = Color.FromArgb(255, 240, 240); // Light red
+                        row.DefaultCellStyle.BackColor = Color.FromArgb(255, 240, 240);
                         break;
                 }
 
-                // Set text color for better contrast
                 row.DefaultCellStyle.ForeColor = Color.Black;
-
-                // Add tooltip
-                row.Cells[1].ToolTipText = $"Category: {vehicle.Category}\nStatus: {vehicle.Status}";
+                row.Cells[1].ToolTipText = $"Status: {vehicle.Status}";
             }
         }
+
 
         // ===============================
         // VEHICLE HEADER PAINT
@@ -246,49 +169,9 @@ namespace VRMS.UI.Controls.Rental_ReservationCalendar
 
         private void cmbFilter_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // Filter vehicles based on category
-            string filter = cmbFilter.SelectedItem?.ToString();
-            if (filter == "All Categories")
-            {
-                SetupVehicleDataGrid();
-            }
-            else
-            {
-                dgvVehicles.Rows.Clear();
-                dgvVehicles.RowTemplate.Height = RowHeight;
-                dgvVehicles.DefaultCellStyle.Font = new Font("Segoe UI", 9.5f);
-
-                foreach (var vehicle in _dummyVehicles)
-                {
-                    if (vehicle.Category == filter.Replace(" Category", ""))
-                    {
-                        int rowIndex = dgvVehicles.Rows.Add(
-                            vehicle.Year.ToString(),
-                            vehicle.LicensePlate,
-                            vehicle.Model
-                        );
-
-                        DataGridViewRow row = dgvVehicles.Rows[rowIndex];
-                        row.Height = RowHeight;
-
-                        switch (vehicle.Status)
-                        {
-                            case VehicleStatus.Available:
-                                row.DefaultCellStyle.BackColor = Color.FromArgb(240, 255, 240);
-                                break;
-                            case VehicleStatus.Rented:
-                                row.DefaultCellStyle.BackColor = Color.FromArgb(240, 248, 255);
-                                break;
-                            case VehicleStatus.UnderMaintenance:
-                                row.DefaultCellStyle.BackColor = Color.FromArgb(255, 240, 240);
-                                break;
-                        }
-
-                        row.DefaultCellStyle.ForeColor = Color.Black;
-                        row.Cells[1].ToolTipText = $"Category: {vehicle.Category}\nStatus: {vehicle.Status}";
-                    }
-                }
-            }
+            // Category filtering will be reintroduced once
+            // category names are resolved from VehicleCategoryService.
+            SetupVehicleDataGrid();
             pnlCalendarCanvas.Invalidate();
         }
 
@@ -335,12 +218,58 @@ namespace VRMS.UI.Controls.Rental_ReservationCalendar
                 _currentDate.Year,
                 _currentDate.Month
             );
+            LoadMonthData();
 
             DrawDayHeaders(g, daysInMonth);
             DrawGrid(g, daysInMonth);
             DrawMonthRentals(g);
             DrawMonthMaintenance(g);
         }
+        
+        private void LoadMonthData()
+        {
+            _vehicles = _vehicleService.GetAllVehicles();
+            _monthRentals.Clear();
+            _monthMaintenance.Clear();
+
+            var monthStart =
+                new DateTime(_currentDate.Year, _currentDate.Month, 1);
+
+            var monthEnd =
+                monthStart.AddMonths(1).AddDays(-1);
+
+            // ---------------- RENTALS ----------------
+            var rentals = _rentalService.GetAllRentals();
+
+            foreach (var r in rentals)
+            {
+                var rentalEnd =
+                    r.ActualReturnDate ?? r.ExpectedReturnDate;
+
+                if (rentalEnd < monthStart || r.PickupDate > monthEnd)
+                    continue;
+
+                _monthRentals.Add(r);
+            }
+
+            // ---------------- MAINTENANCE ----------------
+            foreach (var v in _vehicles)
+            {
+                var maints =
+                    _vehicleService.GetMaintenanceByVehicle(v.Id);
+
+                foreach (var m in maints)
+                {
+                    var maintEnd = m.EndDate ?? monthEnd;
+
+                    if (maintEnd < monthStart || m.StartDate > monthEnd)
+                        continue;
+
+                    _monthMaintenance.Add(m);
+                }
+            }
+        }
+
 
         private void DrawDayHeaders(Graphics g, int daysInMonth)
         {
@@ -351,7 +280,7 @@ namespace VRMS.UI.Controls.Rental_ReservationCalendar
 
             for (int day = 1; day <= daysInMonth; day++)
             {
-                int x = (day - 1) * DayColumnWidth;
+                int x = CalendarLeftOffset + (day - 1) * DayColumnWidth;
 
                 Rectangle rect = new Rectangle(
                     x,
@@ -420,7 +349,7 @@ namespace VRMS.UI.Controls.Rental_ReservationCalendar
             // Vertical day lines (start from x = 0, no first column for vehicle names)
             for (int i = 0; i <= daysInMonth; i++)
             {
-                int x = i * DayColumnWidth;
+                int x = CalendarLeftOffset + i * DayColumnWidth;
                 int bottomY = HeaderHeight + (rowCount * RowHeight);
                 g.DrawLine(pen, x, HeaderHeight, x, bottomY);
             }
@@ -438,48 +367,33 @@ namespace VRMS.UI.Controls.Rental_ReservationCalendar
             using Pen borderPen = new Pen(Color.DimGray);
             using Font rentalFont = new Font(Font.FontFamily, 9);
 
-            foreach (var rental in _dummyRentals)
+            foreach (var r in _monthRentals)
             {
-                int x = (rental.StartDay - 1) * DayColumnWidth;
-                int y = HeaderHeight + rental.VehicleRow * RowHeight;
-                int width = rental.Duration * DayColumnWidth;
-                int height = RowHeight - 8; // Slightly less than full row for padding
+                int vehicleRow =
+                    _vehicles.FindIndex(v => v.Id == r.VehicleId);
 
-                Rectangle rect = new Rectangle(
-                    x + 3,
-                    y + 4,
-                    width - 6,
-                    height
-                );
+                if (vehicleRow < 0)
+                    continue;
 
-                using Brush fillBrush = new SolidBrush(Color.FromArgb(200, rental.Color));
-                g.FillRectangle(fillBrush, rect);
-                g.DrawRectangle(borderPen, rect);
+                var start =
+                    r.PickupDate < new DateTime(_currentDate.Year, _currentDate.Month, 1)
+                        ? 1
+                        : r.PickupDate.Day;
 
-                TextRenderer.DrawText(
-                    g,
-                    rental.Customer,
-                    rentalFont,
-                    rect,
-                    Color.Black,
-                    TextFormatFlags.HorizontalCenter |
-                    TextFormatFlags.VerticalCenter |
-                    TextFormatFlags.EndEllipsis |
-                    TextFormatFlags.WordBreak
-                );
-            }
-        }
+                var endDate =
+                    r.ActualReturnDate ?? r.ExpectedReturnDate;
 
-        private void DrawMonthMaintenance(Graphics g)
-        {
-            using Pen borderPen = new Pen(Color.DarkRed, 1);
-            using Font maintFont = new Font(Font.FontFamily, 9, FontStyle.Bold);
+                var end =
+                    endDate > new DateTime(_currentDate.Year, _currentDate.Month,
+                        DateTime.DaysInMonth(_currentDate.Year, _currentDate.Month))
+                        ? DateTime.DaysInMonth(_currentDate.Year, _currentDate.Month)
+                        : endDate.Day;
 
-            foreach (var maintenance in _dummyMaintenance)
-            {
-                int x = (maintenance.StartDay - 1) * DayColumnWidth;
-                int y = HeaderHeight + maintenance.VehicleRow * RowHeight;
-                int width = maintenance.Duration * DayColumnWidth;
+                int duration = end - start + 1;
+
+                int x = CalendarLeftOffset + (start - 1) * DayColumnWidth;
+                int y = HeaderHeight + vehicleRow * RowHeight;
+                int width = duration * DayColumnWidth;
                 int height = RowHeight - 8;
 
                 Rectangle rect = new Rectangle(
@@ -489,16 +403,76 @@ namespace VRMS.UI.Controls.Rental_ReservationCalendar
                     height
                 );
 
-                using Brush fillBrush = new SolidBrush(Color.FromArgb(200, maintenance.Color));
-                g.FillRectangle(fillBrush, rect);
-                g.DrawRectangle(borderPen, rect);
+                using Brush fill =
+                    new SolidBrush(Color.FromArgb(
+                        200,
+                        Color.SkyBlue.R,
+                        Color.SkyBlue.G,
+                        Color.SkyBlue.B
+                    ));
 
-                // Draw diagonal lines pattern
-                using Pen patternPen = new Pen(Color.DarkRed, 1);
-                for (int i = -height; i < width; i += 5)
-                {
-                    g.DrawLine(patternPen, x + 3 + i, y + 4, x + 3 + i + height, y + 4 + height);
-                }
+                g.FillRectangle(fill, rect);
+                g.DrawRectangle(Pens.DimGray, rect);
+
+                TextRenderer.DrawText(
+                    g,
+                    $"Rental #{r.Id}",
+                    rentalFont,
+                    rect,
+                    Color.Black,
+                    TextFormatFlags.HorizontalCenter |
+                    TextFormatFlags.VerticalCenter |
+                    TextFormatFlags.EndEllipsis
+                );
+            }
+
+        }
+
+        private void DrawMonthMaintenance(Graphics g)
+        {
+            using Pen borderPen = new Pen(Color.DarkRed, 1);
+            using Font maintFont = new Font(Font.FontFamily, 9, FontStyle.Bold);
+
+            foreach (var m in _monthMaintenance)
+            {
+                int vehicleRow =
+                    _vehicles.FindIndex(v => v.Id == m.VehicleId);
+
+                if (vehicleRow < 0)
+                    continue;
+
+                int start =
+                    m.StartDate < new DateTime(_currentDate.Year, _currentDate.Month, 1)
+                        ? 1
+                        : m.StartDate.Day;
+
+                var endDate =
+                    m.EndDate ??
+                    new DateTime(_currentDate.Year, _currentDate.Month,
+                        DateTime.DaysInMonth(_currentDate.Year, _currentDate.Month));
+
+                int end =
+                    endDate.Day;
+
+                int duration = end - start + 1;
+
+                int x = CalendarLeftOffset + (start - 1) * DayColumnWidth;
+                int y = HeaderHeight + vehicleRow * RowHeight;
+                int width = duration * DayColumnWidth;
+                int height = RowHeight - 8;
+
+                Rectangle rect = new Rectangle(
+                    x + 3,
+                    y + 4,
+                    width - 6,
+                    height
+                );
+
+                using Brush fill =
+                    new SolidBrush(Color.FromArgb(200, Color.OrangeRed));
+
+                g.FillRectangle(fill, rect);
+                g.DrawRectangle(Pens.DarkRed, rect);
 
                 TextRenderer.DrawText(
                     g,
@@ -507,10 +481,10 @@ namespace VRMS.UI.Controls.Rental_ReservationCalendar
                     rect,
                     Color.White,
                     TextFormatFlags.HorizontalCenter |
-                    TextFormatFlags.VerticalCenter |
-                    TextFormatFlags.EndEllipsis
+                    TextFormatFlags.VerticalCenter
                 );
             }
+
         }
 
         private void dgvVehicles_RowPrePaint(object sender, DataGridViewRowPrePaintEventArgs e)

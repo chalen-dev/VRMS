@@ -1,28 +1,19 @@
-﻿using System;
-using System.Drawing;
-using System.Windows.Forms;
-using System.IO;
-using System.Reflection;
-
-using VRMS;
+﻿using System.Reflection;
 using VRMS.Controls;
-using VRMS.Forms;
 using VRMS.Controls.UserProfile;
-using VRMS.Repositories.Accounts;
-using VRMS.Services.Account;
-using VRMS.UI.ApplicationService;
-using VRMS.UI.Controls.CustomersView;
-using VRMS.UI.Forms;
-using VRMS.UI.Controls.Reports;
-using VRMS.UI.Controls.History;
-using VRMS.UI.Controls.VehiclesView;
 using VRMS.Repositories.Reports;
+using VRMS.Services.Account;
 using VRMS.Services.Reports;
+using VRMS.UI.ApplicationService;
+using VRMS.UI.Controls.Admin;
+using VRMS.UI.Controls.CustomersView;
+using VRMS.UI.Controls.History;
+using VRMS.UI.Controls.RentalCalendar;
 using VRMS.UI.Controls.RentalsView;
-using VRMS.UI.Controls.Rental_ReservationCalendar;
-using VRMS.UI.Controls.Admin; // Add this line to reference the AdminView control
+using VRMS.UI.Controls.Reports;
+using VRMS.UI.Controls.VehiclesView;
 
-namespace VRMS.Forms
+namespace VRMS.UI.Forms.Main
 {
     public partial class MainForm : Form
     {
