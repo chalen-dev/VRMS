@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using System.IO;
+using System.Reflection;
+
 using VRMS;
 using VRMS.Controls;
 using VRMS.Forms;
@@ -37,6 +40,7 @@ namespace VRMS.Forms
             InitializeComponent();
 
             _userService = ApplicationServices.UserService;
+            logoPictureBox.Image = LoadEmbeddedImage("VRMS.Assets.company_logo.png");
 
             SetupForm();
         }
@@ -354,6 +358,16 @@ namespace VRMS.Forms
             }
 
             base.OnFormClosed(e);
+        }
+        private static Image LoadEmbeddedImage(string resourceName)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream == null)
+                throw new InvalidOperationException($"Embedded resource not found: {resourceName}");
+
+            return Image.FromStream(stream);
         }
     }
 }
