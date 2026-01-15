@@ -73,7 +73,7 @@
             // 
             txtSearch.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             txtSearch.Font = new Font("Segoe UI", 10F);
-            txtSearch.Location = new Point(1097, 48);
+            txtSearch.Location = new Point(1071, 55);
             txtSearch.Margin = new Padding(3, 4, 3, 4);
             txtSearch.Name = "txtSearch";
             txtSearch.Size = new Size(251, 30);
@@ -86,7 +86,7 @@
             cbStatusFilter.DropDownStyle = ComboBoxStyle.DropDownList;
             cbStatusFilter.Font = new Font("Segoe UI", 10F);
             cbStatusFilter.FormattingEnabled = true;
-            cbStatusFilter.Location = new Point(1097, 93);
+            cbStatusFilter.Location = new Point(1071, 96);
             cbStatusFilter.Margin = new Padding(3, 4, 3, 4);
             cbStatusFilter.Name = "cbStatusFilter";
             cbStatusFilter.Size = new Size(251, 31);
@@ -214,7 +214,7 @@
             btnConfirmReservation.Location = new Point(35, 609);
             btnConfirmReservation.Margin = new Padding(5);
             btnConfirmReservation.Name = "btnConfirmReservation";
-            btnConfirmReservation.Size = new Size(291, 48);
+            btnConfirmReservation.Size = new Size(278, 48);
             btnConfirmReservation.TabIndex = 7;
             btnConfirmReservation.Text = "✔️ Confirm Reservation";
             btnConfirmReservation.UseVisualStyleBackColor = false;
@@ -231,7 +231,7 @@
             btnProceedRent.Location = new Point(35, 667);
             btnProceedRent.Margin = new Padding(5);
             btnProceedRent.Name = "btnProceedRent";
-            btnProceedRent.Size = new Size(291, 48);
+            btnProceedRent.Size = new Size(278, 48);
             btnProceedRent.TabIndex = 6;
             btnProceedRent.Text = "🚗 Proceed Rent";
             btnProceedRent.UseVisualStyleBackColor = false;
@@ -244,7 +244,7 @@
             lblDetailAmount.ForeColor = Color.FromArgb(46, 204, 113);
             lblDetailAmount.Location = new Point(27, 451);
             lblDetailAmount.Name = "lblDetailAmount";
-            lblDetailAmount.Size = new Size(110, 25);
+            lblDetailAmount.Size = new Size(195, 25);
             lblDetailAmount.TabIndex = 4;
             lblDetailAmount.Text = "Reservation Fee: ₱ --";
             // 
@@ -288,7 +288,7 @@
             pbVehicle.Location = new Point(18, 21);
             pbVehicle.Margin = new Padding(3, 4, 3, 4);
             pbVehicle.Name = "pbVehicle";
-            pbVehicle.Size = new Size(317, 287);
+            pbVehicle.Size = new Size(304, 287);
             pbVehicle.SizeMode = PictureBoxSizeMode.Zoom;
             pbVehicle.TabIndex = 0;
             pbVehicle.TabStop = false;

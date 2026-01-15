@@ -73,7 +73,7 @@
             btnNewRental.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             btnNewRental.ForeColor = Color.White;
             btnNewRental.Location = new Point(25, 85);
-            btnNewRental.Margin = new Padding(5, 5, 5, 5);
+            btnNewRental.Margin = new Padding(5);
             btnNewRental.Name = "btnNewRental";
             btnNewRental.Size = new Size(185, 51);
             btnNewRental.TabIndex = 1;
@@ -89,7 +89,7 @@
             btnReturn.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             btnReturn.ForeColor = Color.White;
             btnReturn.Location = new Point(216, 85);
-            btnReturn.Margin = new Padding(5, 5, 5, 5);
+            btnReturn.Margin = new Padding(5);
             btnReturn.Name = "btnReturn";
             btnReturn.Size = new Size(185, 51);
             btnReturn.TabIndex = 2;
@@ -127,7 +127,7 @@
             dgvRentals.EnableHeadersVisualStyles = false;
             dgvRentals.GridColor = Color.WhiteSmoke;
             dgvRentals.Location = new Point(0, 0);
-            dgvRentals.Margin = new Padding(5, 5, 5, 5);
+            dgvRentals.Margin = new Padding(5);
             dgvRentals.MultiSelect = false;
             dgvRentals.Name = "dgvRentals";
             dgvRentals.ReadOnly = true;
@@ -142,7 +142,7 @@
             // 
             splitContainer1.Dock = DockStyle.Fill;
             splitContainer1.Location = new Point(0, 144);
-            splitContainer1.Margin = new Padding(5, 5, 5, 5);
+            splitContainer1.Margin = new Padding(5);
             splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
@@ -171,7 +171,7 @@
             lblDetailAmount.Location = new Point(27, 451);
             lblDetailAmount.Margin = new Padding(5, 0, 5, 0);
             lblDetailAmount.Name = "lblDetailAmount";
-            lblDetailAmount.Size = new Size(109, 25);
+            lblDetailAmount.Size = new Size(98, 25);
             lblDetailAmount.TabIndex = 4;
             lblDetailAmount.Text = "Total: ₱ --";
             // 
@@ -216,9 +216,9 @@
             pbVehicle.BackColor = Color.WhiteSmoke;
             pbVehicle.BorderStyle = BorderStyle.FixedSingle;
             pbVehicle.Location = new Point(18, 21);
-            pbVehicle.Margin = new Padding(5, 5, 5, 5);
+            pbVehicle.Margin = new Padding(5);
             pbVehicle.Name = "pbVehicle";
-            pbVehicle.Size = new Size(395, 287);
+            pbVehicle.Size = new Size(382, 287);
             pbVehicle.SizeMode = PictureBoxSizeMode.Zoom;
             pbVehicle.TabIndex = 0;
             pbVehicle.TabStop = false;
@@ -234,7 +234,7 @@
             panel1.Controls.Add(btnReturn);
             panel1.Dock = DockStyle.Top;
             panel1.Location = new Point(0, 0);
-            panel1.Margin = new Padding(5, 5, 5, 5);
+            panel1.Margin = new Padding(5);
             panel1.Name = "panel1";
             panel1.Size = new Size(1371, 144);
             panel1.TabIndex = 5;
@@ -247,7 +247,7 @@
             btnViewDetails.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             btnViewDetails.ForeColor = Color.White;
             btnViewDetails.Location = new Point(407, 85);
-            btnViewDetails.Margin = new Padding(5, 5, 5, 5);
+            btnViewDetails.Margin = new Padding(5);
             btnViewDetails.Name = "btnViewDetails";
             btnViewDetails.Size = new Size(185, 51);
             btnViewDetails.TabIndex = 5;
@@ -259,8 +259,8 @@
             // 
             txtSearch.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             txtSearch.Font = new Font("Segoe UI", 10F);
-            txtSearch.Location = new Point(1097, 48);
-            txtSearch.Margin = new Padding(5, 5, 5, 5);
+            txtSearch.Location = new Point(1080, 53);
+            txtSearch.Margin = new Padding(5);
             txtSearch.Name = "txtSearch";
             txtSearch.PlaceholderText = "Search by customer name...";
             txtSearch.Size = new Size(251, 30);
@@ -272,8 +272,8 @@
             cbStatusFilter.DropDownStyle = ComboBoxStyle.DropDownList;
             cbStatusFilter.Font = new Font("Segoe UI", 10F);
             cbStatusFilter.FormattingEnabled = true;
-            cbStatusFilter.Location = new Point(1097, 93);
-            cbStatusFilter.Margin = new Padding(5, 5, 5, 5);
+            cbStatusFilter.Location = new Point(1080, 96);
+            cbStatusFilter.Margin = new Padding(5);
             cbStatusFilter.Name = "cbStatusFilter";
             cbStatusFilter.Size = new Size(251, 31);
             cbStatusFilter.TabIndex = 3;
@@ -285,7 +285,7 @@
             BackColor = Color.White;
             Controls.Add(splitContainer1);
             Controls.Add(panel1);
-            Margin = new Padding(5, 5, 5, 5);
+            Margin = new Padding(5);
             Name = "RentalsView";
             Size = new Size(1371, 893);
             ((System.ComponentModel.ISupportInitialize)dgvRentals).EndInit();

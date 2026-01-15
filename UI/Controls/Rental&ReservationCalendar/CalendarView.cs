@@ -204,5 +204,10 @@ namespace VRMS.UI.Controls.Rental_ReservationCalendar
                 );
             }
         }
+
+        private void lblTitle_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

@@ -109,10 +109,10 @@
             dateRangePicker.CustomFormat = "MMMM yyyy";
             dateRangePicker.Font = new Font("Segoe UI", 9F);
             dateRangePicker.Format = DateTimePickerFormat.Custom;
-            dateRangePicker.Location = new Point(789, 21);
+            dateRangePicker.Location = new Point(871, 21);
             dateRangePicker.Name = "dateRangePicker";
             dateRangePicker.ShowUpDown = true;
-            dateRangePicker.Size = new Size(141, 27);
+            dateRangePicker.Size = new Size(185, 27);
             dateRangePicker.TabIndex = 2;
             // 
             // btnRefresh
@@ -123,7 +123,7 @@
             btnRefresh.FlatStyle = FlatStyle.Flat;
             btnRefresh.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             btnRefresh.ForeColor = Color.White;
-            btnRefresh.Location = new Point(937, 16);
+            btnRefresh.Location = new Point(1063, 15);
             btnRefresh.Name = "btnRefresh";
             btnRefresh.Size = new Size(114, 43);
             btnRefresh.TabIndex = 1;
