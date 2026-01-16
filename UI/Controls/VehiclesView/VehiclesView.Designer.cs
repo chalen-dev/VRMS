@@ -416,7 +416,7 @@
             flowLayoutPanelFeatures.AutoSize = true;
             flowLayoutPanelFeatures.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             flowLayoutPanelFeatures.BackColor = Color.Transparent;
-            flowLayoutPanelFeatures.Location = new Point(10, 35);
+            flowLayoutPanelFeatures.Location = new Point(10, 36);
             flowLayoutPanelFeatures.MaximumSize = new Size(330, 80);
             flowLayoutPanelFeatures.MinimumSize = new Size(330, 30);
             flowLayoutPanelFeatures.Name = "flowLayoutPanelFeatures";

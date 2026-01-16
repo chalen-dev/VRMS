@@ -40,7 +40,6 @@ namespace VRMS.UI.Controls.History
             dgvRentals.SelectionChanged += DgvRentals_SelectionChanged;
 
             btnViewReceipt.Click += BtnViewReceipt_Click;
-            btnRefund.Click += BtnRefund_Click;
         }
 
         // =====================================================
@@ -201,9 +200,6 @@ namespace VRMS.UI.Controls.History
             panelDetailsContent.Visible = true;
 
             btnViewReceipt.Enabled = true;
-            btnRefund.Enabled =
-                _selectedInvoice != null &&
-                _lastPayment != null;
         }
 
         // =====================================================

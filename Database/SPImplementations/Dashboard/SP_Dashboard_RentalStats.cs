@@ -8,21 +8,17 @@ public static class SP_Dashboard_RentalStats
                                   CREATE PROCEDURE sp_dashboard_rental_stats()
                                   BEGIN
                                       SELECT
-                                          -- Active rentals: not yet returned
+                                          -- Active rentals TODAY (date overlap)
                                           SUM(
-                                              actual_return_date IS NULL
-                                              AND status = 'Active'
+                                              pickup_date <= CURDATE()
+                                              AND expected_return_date >= CURDATE()
                                           ) AS active_rentals,
 
-                                          -- Overdue rentals: past expected return date and not yet returned
+                                          -- Overdue rentals (ended before today)
                                           SUM(
-                                              actual_return_date IS NULL
-                                              AND status = 'Active'
-                                              AND expected_return_date < NOW()
+                                              expected_return_date < CURDATE()
                                           ) AS overdue_rentals
                                       FROM rentals;
                                   END;
-                                  
-                                  
                                   """;
 }

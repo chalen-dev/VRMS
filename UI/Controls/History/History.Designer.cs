@@ -40,7 +40,6 @@
 
         // ACTION BUTTONS (Always visible)
         private Panel panelActions;
-        private Button btnRefund;
         private Button btnViewReceipt;
 
         private Panel panelDetailsHeader;
@@ -84,7 +83,6 @@
             panelDetailsArea = new Panel();
             panelActions = new Panel();
             btnViewReceipt = new Button();
-            btnRefund = new Button();
             panelDetailsContent = new Panel();
             panelInfoGrid = new Panel();
             lblCreatedValue = new Label();
@@ -272,7 +270,6 @@
             // 
             panelActions.BackColor = Color.FromArgb(248, 249, 250);
             panelActions.Controls.Add(btnViewReceipt);
-            panelActions.Controls.Add(btnRefund);
             panelActions.Dock = DockStyle.Bottom;
             panelActions.Location = new Point(0, 647);
             panelActions.Name = "panelActions";
@@ -288,28 +285,13 @@
             btnViewReceipt.FlatStyle = FlatStyle.Flat;
             btnViewReceipt.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             btnViewReceipt.ForeColor = Color.White;
-            btnViewReceipt.Location = new Point(10, 60);
+            btnViewReceipt.Location = new Point(10, 10);
             btnViewReceipt.Name = "btnViewReceipt";
-            btnViewReceipt.Size = new Size(359, 50);
+            btnViewReceipt.Size = new Size(359, 75);
             btnViewReceipt.TabIndex = 2;
             btnViewReceipt.Text = "📄 View Receipt";
             btnViewReceipt.UseVisualStyleBackColor = false;
             btnViewReceipt.Click += BtnViewReceipt_Click;
-            // 
-            // btnRefund
-            // 
-            btnRefund.BackColor = Color.FromArgb(231, 76, 60);
-            btnRefund.Dock = DockStyle.Top;
-            btnRefund.FlatAppearance.BorderSize = 0;
-            btnRefund.FlatStyle = FlatStyle.Flat;
-            btnRefund.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            btnRefund.ForeColor = Color.White;
-            btnRefund.Location = new Point(10, 10);
-            btnRefund.Name = "btnRefund";
-            btnRefund.Size = new Size(359, 50);
-            btnRefund.TabIndex = 0;
-            btnRefund.Text = "💸 Refund";
-            btnRefund.UseVisualStyleBackColor = false;
             // 
             // panelDetailsContent
             // 
