@@ -26,16 +26,14 @@
             btnNext = new Button();
             btnPrev = new Button();
             lblTitle = new Label();
-            cmbFilter = new ComboBox();
-            cmbSort = new ComboBox();
             pnlMain = new Panel();
             splitContainer = new SplitContainer();
             pnlVehicleList = new Panel();
-            pnlVehicleHeader = new Panel();
             dgvVehicles = new DataGridView();
             colYear = new DataGridViewTextBoxColumn();
             colLicense = new DataGridViewTextBoxColumn();
             colModel = new DataGridViewTextBoxColumn();
+            pnlVehicleHeader = new Panel();
             pnlCalendarCanvas = new Panel();
             hScrollCalendar = new HScrollBar();
             toolTip = new ToolTip(components);
@@ -57,8 +55,6 @@
             pnlHeader.Controls.Add(btnNext);
             pnlHeader.Controls.Add(btnPrev);
             pnlHeader.Controls.Add(lblTitle);
-            pnlHeader.Controls.Add(cmbFilter);
-            pnlHeader.Controls.Add(cmbSort);
             pnlHeader.Dock = DockStyle.Top;
             pnlHeader.Location = new Point(0, 0);
             pnlHeader.Margin = new Padding(3, 4, 3, 4);
@@ -110,30 +106,6 @@
             lblTitle.TabIndex = 4;
             lblTitle.Text = "Calendar";
             // 
-            // cmbFilter
-            // 
-            cmbFilter.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbFilter.FormattingEnabled = true;
-            cmbFilter.Items.AddRange(new object[] { "Small Category", "Medium Category", "Large Category", "All Categories" });
-            cmbFilter.Location = new Point(400, 17);
-            cmbFilter.Margin = new Padding(3, 4, 3, 4);
-            cmbFilter.Name = "cmbFilter";
-            cmbFilter.Size = new Size(137, 28);
-            cmbFilter.TabIndex = 3;
-            cmbFilter.SelectedIndexChanged += cmbFilter_SelectedIndexChanged;
-            // 
-            // cmbSort
-            // 
-            cmbSort.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbSort.FormattingEnabled = true;
-            cmbSort.Items.AddRange(new object[] { "Category", "License Plate", "Year", "Model" });
-            cmbSort.Location = new Point(549, 17);
-            cmbSort.Margin = new Padding(3, 4, 3, 4);
-            cmbSort.Name = "cmbSort";
-            cmbSort.Size = new Size(137, 28);
-            cmbSort.TabIndex = 2;
-            cmbSort.SelectedIndexChanged += cmbSort_SelectedIndexChanged;
-            // 
             // pnlMain
             // 
             pnlMain.Controls.Add(splitContainer);
@@ -174,21 +146,9 @@
             pnlVehicleList.Location = new Point(0, 0);
             pnlVehicleList.Margin = new Padding(3, 4, 3, 4);
             pnlVehicleList.Name = "pnlVehicleList";
-            pnlVehicleList.Padding = Padding.Empty;
             pnlVehicleList.Size = new Size(286, 734);
             pnlVehicleList.TabIndex = 0;
             pnlVehicleList.Resize += pnlVehicleList_Resize;
-            // 
-            // pnlVehicleHeader
-            // 
-            pnlVehicleHeader.BackColor = Color.FromArgb(240, 240, 240);
-            pnlVehicleHeader.Dock = DockStyle.Top;
-            pnlVehicleHeader.Location = new Point(0, 0);
-            pnlVehicleHeader.Margin = new Padding(3, 4, 3, 4);
-            pnlVehicleHeader.Name = "pnlVehicleHeader";
-            pnlVehicleHeader.Size = new Size(286, 45);
-            pnlVehicleHeader.TabIndex = 1;
-            pnlVehicleHeader.Paint += pnlVehicleHeader_Paint;
             // 
             // dgvVehicles
             // 
@@ -207,12 +167,13 @@
             dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
             dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
             dgvVehicles.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dgvVehicles.ColumnHeadersHeight = 29;
             dgvVehicles.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             dgvVehicles.ColumnHeadersVisible = false;
             dgvVehicles.Columns.AddRange(new DataGridViewColumn[] { colYear, colLicense, colModel });
             dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = SystemColors.Window;
-            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9.5f);
+            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9.5F);
             dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
             dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
             dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
@@ -248,7 +209,6 @@
             colYear.MinimumWidth = 55;
             colYear.Name = "colYear";
             colYear.ReadOnly = true;
-            colYear.Width = 55;
             // 
             // colLicense
             // 
@@ -258,7 +218,6 @@
             colLicense.MinimumWidth = 85;
             colLicense.Name = "colLicense";
             colLicense.ReadOnly = true;
-            colLicense.Width = 85;
             // 
             // colModel
             // 
@@ -268,6 +227,17 @@
             colModel.MinimumWidth = 110;
             colModel.Name = "colModel";
             colModel.ReadOnly = true;
+            // 
+            // pnlVehicleHeader
+            // 
+            pnlVehicleHeader.BackColor = Color.FromArgb(240, 240, 240);
+            pnlVehicleHeader.Dock = DockStyle.Top;
+            pnlVehicleHeader.Location = new Point(0, 0);
+            pnlVehicleHeader.Margin = new Padding(3, 4, 3, 4);
+            pnlVehicleHeader.Name = "pnlVehicleHeader";
+            pnlVehicleHeader.Size = new Size(286, 45);
+            pnlVehicleHeader.TabIndex = 1;
+            pnlVehicleHeader.Paint += pnlVehicleHeader_Paint;
             // 
             // pnlCalendarCanvas
             // 
@@ -284,14 +254,12 @@
             // hScrollCalendar
             // 
             hScrollCalendar.Dock = DockStyle.Bottom;
-            hScrollCalendar.Height = 18;
             hScrollCalendar.LargeChange = 300;
             hScrollCalendar.Location = new Point(0, 716);
             hScrollCalendar.Maximum = 300;
-            hScrollCalendar.Minimum = 0;
             hScrollCalendar.Name = "hScrollCalendar";
-            hScrollCalendar.SmallChange = 45;
             hScrollCalendar.Size = new Size(1080, 18);
+            hScrollCalendar.SmallChange = 45;
             hScrollCalendar.TabIndex = 1;
             hScrollCalendar.Scroll += hScrollCalendar_Scroll;
             // 
@@ -324,8 +292,6 @@
         private Button btnNext;
         private Button btnPrev;
         private Label lblTitle;
-        private ComboBox cmbFilter;
-        private ComboBox cmbSort;
         private Panel pnlMain;
         private SplitContainer splitContainer;
         private Panel pnlVehicleList;
