@@ -1,5 +1,6 @@
 ﻿
 using VRMS.DTOs.Damage;
+using VRMS.DTOs.Rental;
 using VRMS.Enums;
 using VRMS.Helpers;
 using VRMS.Models.Damages;
